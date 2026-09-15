@@ -27,6 +27,12 @@ class TestGeneratedSamples:
             target = build_examples.destination(source)
             assert target.is_file(), f"{target.name} がありません。{REBUILD_HINT}"
 
+    def test_index_is_included(self):
+        """索引もサンプルとして管理する（--reproducible で時刻を埋め込まないため）。"""
+        index = build_examples.OUTPUT_DIR / build_examples.INDEX_NAME
+        assert index.is_file(), f"索引がありません。{REBUILD_HINT}"
+        assert "生成 " not in index.read_text(encoding="utf-8")
+
     def test_samples_are_up_to_date(self):
         """処理を変えたら、このテストが落ちて再生成を促す。"""
         stale = build_examples.stale_files()
@@ -35,6 +41,11 @@ class TestGeneratedSamples:
             + ", ".join(f"{path.name}（{reason}）" for path, reason in stale)
             + f"。{REBUILD_HINT}"
         )
+
+    def test_index_links_to_every_sample(self):
+        index = (build_examples.OUTPUT_DIR / build_examples.INDEX_NAME).read_text(encoding="utf-8")
+        for source in build_examples.source_files():
+            assert f'href="{source.stem}.html"' in index, source.name
 
     def test_samples_are_self_contained(self):
         """配布物と同じく、外部を参照しないこと。
@@ -64,7 +75,9 @@ class TestBuild:
     """
 
     def test_first_build_creates_every_file(self, tmp_path: Path):
-        assert build_examples.build(tmp_path, quiet=True) == len(build_examples.source_files())
+        """本文 + 索引の分だけ書き出す。"""
+        expected = len(build_examples.source_files()) + 1  # +1 は索引
+        assert build_examples.build(tmp_path, quiet=True) == expected
 
     def test_second_build_changes_nothing(self, tmp_path: Path):
         """内容が同じなら書き換えない（無駄な差分を作らない）。"""

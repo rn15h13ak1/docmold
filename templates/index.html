@@ -14,18 +14,19 @@
 <div class="dm-page">
   <header class="dm-header">
     <h1 class="dm-title">{{ title }}</h1>
-    <p class="dm-note">{{ entries | length }} 件 / 生成 {{ generated_at }}</p>
+    <p class="dm-note">{{ entries | length }} 件{% if generated_at %} / 生成 {{ generated_at }}{% endif %}</p>
   </header>
   <main class="dm-content">
     <table class="dm-table dm-index">
       <thead>
-        <tr><th>タイトル</th><th>種類</th><th>ファイル</th></tr>
+        <tr><th>タイトル</th><th>種類</th><th>日付</th><th>ファイル</th></tr>
       </thead>
       <tbody>
         {% for entry in entries %}
         <tr>
           <td><a href="{{ entry.href }}">{{ entry.title }}</a></td>
           <td><span class="dm-badge dm-badge--default">{{ entry.type }}</span></td>
+          <td class="dm-index__date">{{ entry.date }}</td>
           <td class="dm-index__path">{{ entry.source }}</td>
         </tr>
         {% endfor %}

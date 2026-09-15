@@ -411,3 +411,4 @@
 /* --- 索引 ---------------------------------------------------------------- */
 
 .dm-index__path { color: var(--muted); font-family: var(--mono); font-size: 12px; }
+.dm-index__date { white-space: nowrap; font-variant-numeric: tabular-nums; }

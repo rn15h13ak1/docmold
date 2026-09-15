@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import datetime
+import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -19,7 +20,7 @@ from typing import List, Optional, Sequence, Tuple
 
 from config import ConfigError, Config, load_config
 from converter import ConversionError, convert_file
-from frontmatter import FrontMatterError
+from frontmatter import FrontMatterError, meta_to_text
 from renderer import RenderError, build_css, get_environment
 from rules import RuleError, rule_descriptions
 
@@ -67,6 +68,7 @@ class _Entry:
     title: str
     type: str
     source: str
+    date: str = ""
 
 
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
@@ -97,6 +99,10 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("--list-types", action="store_true", help="指定できる種類の一覧を表示して終了")
     parser.add_argument("--list-rules", action="store_true", help="登録済みルールの一覧を表示して終了")
     parser.add_argument("--dry-run", action="store_true", help="変換の検証のみ。HTML は書き出さない")
+    parser.add_argument(
+        "--reproducible", action="store_true",
+        help="出力に生成時刻を埋め込まない（索引を差分管理したいとき）",
+    )
     parser.add_argument(
         "--strict", action="store_true",
         help="警告があれば失敗扱いにする（終了コード 1）。バッチや定期実行での取りこぼし防止",
@@ -175,7 +181,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if args.index and entries and not args.dry_run:
         index_path = (output_file.parent if output_file else output_dir) / INDEX_FILENAME
         try:
-            _write_index(index_path, entries, config)
+            _write_index(index_path, entries, config, reproducible=args.reproducible)
         except (OSError, RenderError) as e:
             sys.stderr.write(f"索引の生成に失敗しました: {e}\n")
             failed += 1
@@ -376,7 +382,22 @@ def _convert_one(source: Path, destination: Path, config: Config,
         title=result.title,
         type=result.profile_name,
         source=str(source),
+        date=_entry_date(result.meta),
     )
+
+
+def _entry_date(meta: dict) -> str:
+    """索引に出す日付を front matter から拾う。見つからなければ空。
+
+    文書の種類ごとに日付のキーが違う（日時 / 実施日 / 発生日時 / 期間 …）ため、
+    keywords の index_date グループを順に見る。
+    """
+    from rules import keywords
+
+    for key in keywords.get("index_date"):
+        if key in meta:
+            return meta_to_text(meta[key])
+    return ""
 
 
 def _relative_href(destination: Path) -> str:
@@ -384,7 +405,12 @@ def _relative_href(destination: Path) -> str:
     return destination.name if destination.parent == Path(".") else str(destination)
 
 
-def _write_index(index_path: Path, entries: List[_Entry], config: Config) -> None:
+#: 日付らしき並びを取り出す (2026-09-14 / 2026/9/14 / 20260914)。
+_DATE_RE = re.compile(r"(\d{4})\D?(\d{1,2})\D?(\d{1,2})")
+
+
+def _write_index(index_path: Path, entries: List[_Entry], config: Config,
+                 reproducible: bool = False) -> None:
     """一括変換の索引 HTML を書き出す (本体と同じく自己完結 1 ファイル)。"""
     base = index_path.parent
     rows = []
@@ -393,14 +419,43 @@ def _write_index(index_path: Path, entries: List[_Entry], config: Config) -> Non
             href = Path(entry.href).resolve().relative_to(base.resolve()).as_posix()
         except ValueError:
             href = Path(entry.href).as_posix()
-        rows.append({"href": href, "title": entry.title, "type": entry.type, "source": entry.source})
+        rows.append({
+            "href": href,
+            "title": entry.title,
+            "type": entry.type,
+            "source": Path(entry.source).as_posix(),
+            "date": entry.date,
+        })
 
     template = get_environment().get_template(INDEX_FILENAME)
     html = template.render(
         title="docmold 索引",
-        entries=sorted(rows, key=lambda row: (row["type"], row["title"])),
-        generated_at=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        entries=sorted(rows, key=_index_order),
+        generated_at=(
+            "" if reproducible
+            else datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        ),
         css=build_css(config, config.profile("default")),
     )
     index_path.parent.mkdir(parents=True, exist_ok=True)
     index_path.write_text(html, encoding="utf-8")
+
+
+def _index_order(row: dict) -> tuple:
+    """索引の並び順。新しい日付から先に、日付が無いものは最後にまとめる。"""
+    key = _date_sort_key(row["date"])
+    return (0 if key else 1, _reverse(key), row["type"], row["title"])
+
+
+def _date_sort_key(text: str) -> str:
+    """日付らしき並びを YYYYMMDD に正規化する。拾えなければ空。"""
+    match = _DATE_RE.search(text or "")
+    if not match:
+        return ""
+    year, month, day = match.groups()
+    return f"{year}{int(month):02d}{int(day):02d}"
+
+
+def _reverse(key: str) -> tuple:
+    """文字列の降順ソート用キー（数値に落として符号を反転する）。"""
+    return -int(key) if key else 0
