@@ -134,6 +134,43 @@ class TestConversion:
         assert "見つかりませんでした" in capsys.readouterr().err
 
 
+class TestOutputOption:
+    """-o に .html を渡したときの扱い。"""
+
+    def test_single_file_writes_that_file(self, in_tmp):
+        write(in_tmp / "a.md", "# A\n")
+        assert main(["a.md", "-o", "report.html", "-q"]) == EXIT_OK
+        assert (in_tmp / "report.html").is_file()
+
+    def test_multiple_inputs_warn(self, in_tmp, capsys):
+        """複数を 1 つの HTML にはまとめられないことを伝える。"""
+        write(in_tmp / "docs" / "a.md", "# A\n")
+        write(in_tmp / "docs" / "b.md", "# B\n")
+        main(["docs", "-o", "out.html", "-q"])
+        assert "ディレクトリ名として扱います" in capsys.readouterr().err
+
+    def test_multiple_inputs_still_convert(self, in_tmp):
+        write(in_tmp / "docs" / "a.md", "# A\n")
+        write(in_tmp / "docs" / "b.md", "# B\n")
+        assert main(["docs", "-o", "out.html", "-q"]) == EXIT_OK
+        assert (in_tmp / "out.html" / "a.html").is_file()
+
+    def test_strict_makes_it_an_error(self, in_tmp):
+        write(in_tmp / "docs" / "a.md", "# A\n")
+        write(in_tmp / "docs" / "b.md", "# B\n")
+        assert main(["docs", "-o", "out.html", "-q", "--strict"]) == EXIT_FAILED
+
+    def test_directory_output_does_not_warn(self, in_tmp, capsys):
+        write(in_tmp / "docs" / "a.md", "# A\n")
+        main(["docs", "-o", "out", "-q"])
+        assert "ディレクトリ名として扱います" not in capsys.readouterr().err
+
+    def test_single_file_does_not_warn(self, in_tmp, capsys):
+        write(in_tmp / "a.md", "# A\n")
+        main(["a.md", "-o", "report.html", "-q"])
+        assert "ディレクトリ名として扱います" not in capsys.readouterr().err
+
+
 class TestCollisions:
     """別ディレクトリの同名ファイルが黙って上書きされないこと。"""
 

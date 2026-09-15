@@ -156,7 +156,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         return EXIT_FAILED
 
     single_file = len(sources) == 1 and Path(args.inputs[0]).is_file()
-    output_dir, output_file = _resolve_output(args.output, single_file)
+    output_dir, output_file = _resolve_output(args.output, single_file, reporter)
 
     if not args.quiet:
         sys.stderr.write(f"設定ファイル: {config.config_path}\n")
@@ -271,6 +271,7 @@ def _collect_sources(inputs: Sequence[str]) -> Tuple[List[Tuple[Path, Path]], Li
 
 
 def _resolve_output(output: Optional[str], single_file: bool,
+                    reporter: Optional["_Reporter"] = None,
                     timestamp: Optional[str] = None) -> Tuple[Path, Optional[Path]]:
     """``(出力ディレクトリ, 単一出力ファイル or None)`` を返す。
 
@@ -286,8 +287,17 @@ def _resolve_output(output: Optional[str], single_file: bool,
 
     path = Path(output).expanduser()
     # 単一ファイル入力で、拡張子付きの出力が指定されたときだけファイル扱いにする。
-    if single_file and path.suffix.lower() in (".html", ".htm"):
+    looks_like_file = path.suffix.lower() in (".html", ".htm")
+    if single_file and looks_like_file:
         return path.parent, path
+
+    if looks_like_file and reporter is not None:
+        # 複数ファイルを 1 つの HTML にはまとめられない。黙ってディレクトリを作ると
+        # 「out.html という名前のフォルダ」ができて分かりにくいため、理由を伝える。
+        reporter.warn(
+            f"-o '{output}' はディレクトリ名として扱います"
+            f"（入力が複数のため、1 つの HTML にはまとめられません）"
+        )
     return path, None
 
 
