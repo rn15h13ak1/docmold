@@ -77,7 +77,7 @@ def render(*, config: Config, profile: Profile, content: str, title: str,
         ) from None
 
     mermaid_js = ""
-    if profile.mermaid:
+    if profile.mermaid.enabled and profile.mermaid.bundled:
         mermaid_js, warning = read_mermaid_js()
         if warning and warnings is not None:
             warnings.append(warning)
@@ -98,6 +98,7 @@ def render(*, config: Config, profile: Profile, content: str, title: str,
             css=build_css(config, profile),
             pygments_css=build_pygments_css(),
             mermaid_js=mermaid_js,
+            mermaid=profile.mermaid,
         )
     except TemplateError as e:
         # テンプレートの変数名間違いなどを、スタックトレースではなく 1 行で伝える。

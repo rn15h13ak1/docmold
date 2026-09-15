@@ -65,14 +65,32 @@ class TestOutput:
         assert "<title><script>" not in html
         assert "&lt;script&gt;" in html
 
-    def test_mermaid_warns_when_asset_missing(self, config):
-        """CDN は使えないため、同梱が無ければ黙って壊さず警告する。"""
+    def test_mermaid_warns_when_bundled_asset_missing(self, config):
+        """同梱が無ければ黙って壊さず警告する（CDN からの自動取得はしない）。"""
+        from config import MermaidSettings
+
         profile = config.profile("default")
-        object.__setattr__(profile, "mermaid", True)
+        object.__setattr__(profile, "mermaid", MermaidSettings(enabled=True, bundled=True))
         warnings = []
         try:
             render(config=config, profile=profile, content="", title="t", meta={},
                    derived={}, toc=[], meta_header=[], warnings=warnings)
         finally:
-            object.__setattr__(profile, "mermaid", False)
+            object.__setattr__(profile, "mermaid", MermaidSettings())
         assert any("mermaid" in w for w in warnings)
+
+    def test_cdn_does_not_need_the_bundled_asset(self, config):
+        from config import MermaidSettings
+
+        profile = config.profile("default")
+        object.__setattr__(profile, "mermaid",
+                           MermaidSettings(enabled=True, bundled=False,
+                                           url="https://example.com/mermaid.min.js"))
+        warnings = []
+        try:
+            html = render(config=config, profile=profile, content="", title="t", meta={},
+                          derived={}, toc=[], meta_header=[], warnings=warnings)
+        finally:
+            object.__setattr__(profile, "mermaid", MermaidSettings())
+        assert 'src="https://example.com/mermaid.min.js"' in html
+        assert warnings == []

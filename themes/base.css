@@ -408,6 +408,27 @@
   pointer-events: none;
 }
 
+/* --- Mermaid の図 ------------------------------------------------------- */
+
+/* 描画前は図の定義がそのまま見えるため、コードブロックとして表示しておく。
+   mermaid.js が描画に成功すると <svg> に置き換わる。 */
+pre.mermaid {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 12px 14px;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 13px;
+}
+pre.mermaid[data-processed="true"] {
+  background: none;
+  border: 0;
+  padding: 0;
+  text-align: center;
+}
+pre.mermaid svg { max-width: 100%; height: auto; }
+
 /* --- 索引 ---------------------------------------------------------------- */
 
 .dm-index__path { color: var(--muted); font-family: var(--mono); font-size: 12px; }

@@ -50,6 +50,15 @@
 #     rules: [todo_checklist, status_badge]
 #     meta_header: [対象, レビュー日, 参加者]
 
+# --- 図（Mermaid）を有効にする ----------------------------------------------
+# profiles:
+#   spec:
+#     mermaid: cdn        # CDN から読み込む（HTML は軽いが閲覧時に接続が要る）
+#     # mermaid: true     # assets/mermaid.min.js を埋め込む（+約 3.4 MB / ファイル）
+#     # mermaid:
+#     #   url: "https://intra.example.com/lib/mermaid.min.js"
+#     #   integrity: "sha384-..."
+
 # --- ルールの検出語を調整する ------------------------------------------------
 # ルールが本文を見分ける語。表記ゆれに合わせたいときに書く。
 # グループ単位で「置き換え」になるため、足したい場合も既定値ごと書くこと。

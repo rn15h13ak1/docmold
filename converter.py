@@ -31,6 +31,7 @@ except ImportError as e:  # pragma: no cover
 from assets import embed_images
 from config import DEFAULT_PROFILE, Config, Profile
 from frontmatter import meta_to_text, split_front_matter
+from mermaid_ext import MermaidExtension
 from renderer import render
 from rules import DERIVED_KEY, apply_rules, keywords
 from rules.common import HEADING_TAGS, add_class, heading_level, wrap_section
@@ -90,8 +91,13 @@ def convert_text(text: str, config: Config, *,
     meta, body = split_front_matter(text)
     profile, warnings = resolve_profile(config, meta, type_override)
 
+    extensions = list(profile.markdown_extensions)
+    if profile.mermaid.enabled:
+        # ```mermaid を codehilite に食われる前に横取りする。
+        extensions.append(MermaidExtension())
+
     md = markdown.Markdown(
-        extensions=profile.markdown_extensions,
+        extensions=extensions,
         extension_configs=_extension_configs(profile),
     )
     html = md.convert(body)

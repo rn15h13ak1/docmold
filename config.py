@@ -94,6 +94,69 @@ class PrintSettings:
         return cls(**{key: bool(value.get(key, False)) for key in cls._KNOWN})
 
 
+#: CDN 参照の既定 URL。再現性のためメジャーバージョンを固定する。
+DEFAULT_MERMAID_URL = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"
+
+
+@dataclass(frozen=True)
+class MermaidSettings:
+    """図の描画に使う mermaid.js の入手先。
+
+    ``false``            無効（既定）
+    ``true`` / bundled   同梱の assets/mermaid.min.js を埋め込む（外部参照ゼロを保つ）
+    ``cdn``              既定の CDN を参照する（HTML は軽いが、閲覧時にインターネットが要る）
+    ``{url: ...}``       指定した URL を参照する（社内にホスティングした場合など）
+    """
+
+    enabled: bool = False
+    bundled: bool = True
+    url: str = ""
+    integrity: str = ""
+
+    _KNOWN = ("source", "url", "integrity")
+
+    @classmethod
+    def parse(cls, value: Any, where: str) -> "MermaidSettings":
+        if value is None or value is False:
+            return cls()
+        if value is True:
+            return cls(enabled=True, bundled=True)
+
+        if isinstance(value, str):
+            keyword = value.strip().lower()
+            if keyword in ("bundled", "embed", "local"):
+                return cls(enabled=True, bundled=True)
+            if keyword == "cdn":
+                return cls(enabled=True, bundled=False, url=DEFAULT_MERMAID_URL)
+            if keyword.startswith(("http://", "https://")):
+                return cls(enabled=True, bundled=False, url=value.strip())
+            raise ConfigError(
+                f"{where}.mermaid: 'bundled' / 'cdn' / URL / true / false で指定してください"
+                f" (実際: {value!r})"
+            )
+
+        if isinstance(value, Mapping):
+            unknown = set(value) - set(cls._KNOWN)
+            if unknown:
+                raise ConfigError(f"{where}.mermaid: 未知のキー: {sorted(unknown)}")
+            source = str(value.get("source", "cdn")).lower()
+            url = str(value.get("url", "") or "")
+            if source in ("bundled", "embed", "local"):
+                if url:
+                    raise ConfigError(f"{where}.mermaid: source: bundled に url は指定できません")
+                return cls(enabled=True, bundled=True)
+            if url and not url.startswith(("http://", "https://")):
+                raise ConfigError(f"{where}.mermaid.url: http(s) の URL で指定してください")
+            return cls(
+                enabled=True,
+                bundled=False,
+                url=url or DEFAULT_MERMAID_URL,
+                integrity=str(value.get("integrity", "") or ""),
+            )
+
+        raise ConfigError(f"{where}.mermaid: bool / 文字列 / マッピングで指定してください")
+
+
 @dataclass(frozen=True)
 class Theme:
     """見た目。CSS 変数として ``:root`` に流し込む。"""
@@ -122,7 +185,7 @@ class Profile:
     meta_header: List[str] = field(default_factory=list)
     print: PrintSettings = field(default_factory=PrintSettings)
     watermark: Optional[str] = None
-    mermaid: bool = False
+    mermaid: MermaidSettings = field(default_factory=MermaidSettings)
     description: str = ""
 
     _KNOWN_KEYS = frozenset({
@@ -158,7 +221,7 @@ class Profile:
             meta_header=_as_str_list(value.get("meta_header"), f"{where}.meta_header"),
             print=PrintSettings.parse(value.get("print"), where),
             watermark=_optional_str(value.get("watermark")),
-            mermaid=bool(value.get("mermaid", False)),
+            mermaid=MermaidSettings.parse(value.get("mermaid"), where),
             description=str(value.get("description", "")),
         )
 

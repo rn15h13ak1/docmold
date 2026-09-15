@@ -60,12 +60,20 @@
   </footer>
 </div>
 
+{% if mermaid.enabled %}
 {% if mermaid_js %}
+{# 同梱を埋め込む: 外部参照ゼロを保つ（そのぶんファイルは大きくなる） #}
 <script>
 {{ mermaid_js | safe }}
 </script>
+{% elif mermaid.url %}
+{# 外部参照: HTML は軽いが、閲覧時にインターネット接続が要る #}
+<script src="{{ mermaid.url }}"{% if mermaid.integrity %} integrity="{{ mermaid.integrity }}" crossorigin="anonymous"{% endif %}></script>
+{% endif %}
 <script>
-if (window.mermaid) { window.mermaid.initialize({ startOnLoad: true, securityLevel: 'strict' }); }
+if (window.mermaid) {
+  window.mermaid.initialize({ startOnLoad: true, securityLevel: 'strict' });
+}
 </script>
 {% endif %}
 {% block scripts %}{% endblock %}
