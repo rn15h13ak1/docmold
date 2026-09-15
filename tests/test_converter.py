@@ -216,3 +216,44 @@ class TestTitleFromHeading:
     def test_front_matter_title_still_wins(self, config):
         result = convert_text("---\ntype: spec\ntitle: 明示タイトル\n---\n\n# 概要\n", config)
         assert result.title == "明示タイトル"
+
+
+class TestMetaTypos:
+    """front matter のキーの打ち間違いを指摘する。
+
+    未知のキーを一律に警告すると、覚え書きとして自由に書いた項目まで指摘してしまう。
+    「意味を持つキーによく似ているのに一致しない」ものだけを対象にする。
+    """
+
+    def _warnings(self, config, front_matter: str) -> list:
+        return convert_text(f"---\n{front_matter}---\n\n## 議題\n", config).warnings
+
+    def test_misspelled_title(self, config):
+        warnings = self._warnings(config, "type: minutes\ntitel: 打ち間違い\n")
+        assert any("'titel'" in w and "'title'" in w for w in warnings)
+
+    def test_misspelled_type(self, config):
+        assert any("'type'" in w for w in self._warnings(config, "tyep: minutes\n"))
+
+    def test_correct_keys_are_silent(self, config):
+        assert self._warnings(config, "type: minutes\ntitle: 正\n日時: 2026-09-16\n") == []
+
+    def test_free_form_key_is_not_flagged(self, config):
+        """覚え書きの項目は指摘しない。"""
+        assert self._warnings(config, "type: minutes\n備考: 自由に書いた項目\n") == []
+
+    def test_similar_key_already_present_is_not_flagged(self, config):
+        """作成日と作成者のように書き分けている場合は指摘しない。"""
+        source = "type: spec\n作成日: 2026-09-16\n作成者: 鈴木花子\n"
+        assert self._warnings(config, source) == []
+
+    def test_internal_keys_are_ignored(self, config):
+        assert self._warnings(config, "type: minutes\n_derived: x\n") == []
+
+    def test_meta_header_keys_are_known(self, config):
+        """プロファイルの meta_header に並べたキーは既知として扱う。"""
+        assert self._warnings(config, "type: incident\n発生日時: 2026-09-16\n") == []
+
+    def test_strict_turns_it_into_a_failure(self, config):
+        """--strict なら取りこぼさない（cli 側の挙動は test_cli で検証）。"""
+        assert len(self._warnings(config, "type: minutes\ntitel: 打ち間違い\n")) == 1

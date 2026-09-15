@@ -12,6 +12,7 @@
 """
 from __future__ import annotations
 
+import difflib
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -38,6 +39,12 @@ from rules.common import HEADING_TAGS, add_class, heading_level, wrap_section
 
 #: 本文からタイトルを拾えなかったときの表示名。
 FALLBACK_TITLE = "(無題)"
+
+#: front matter で常に意味を持つキー。
+RESERVED_META_KEYS = ("type", "title")
+
+#: 打ち間違いとみなす類似度。下げると無関係なキーまで指摘し始める。
+TYPO_CUTOFF = 0.75
 
 #: 文書間リンクとして書き換える拡張子（変換後は .html になる）。
 LINK_EXTS = (".md", ".markdown")
@@ -104,6 +111,7 @@ def convert_text(text: str, config: Config, *,
 
     # 検出語は設定で差し替えられる。ルールを適用する前に有効化する。
     keywords.use(config.keywords)
+    warnings.extend(_check_meta_typos(meta, profile))
 
     soup = BeautifulSoup(html, "html.parser")
     _rewrite_document_links(soup)
@@ -170,6 +178,37 @@ def _extension_configs(profile: Profile) -> Dict[str, Dict[str, Any]]:
         },
     }
     return {name: cfg for name, cfg in configs.items() if name in profile.markdown_extensions}
+
+
+def _check_meta_typos(meta: Dict[str, Any], profile: Profile) -> List[str]:
+    """front matter のキーの打ち間違いらしきものを指摘する。
+
+    未知のキーをすべて警告すると、覚え書きとして自由に書いた項目まで指摘してしまう。
+    「意味を持つキーによく似ているのに一致しない」ものだけを対象にする。
+    """
+    known = _known_meta_keys(profile)
+    warnings: List[str] = []
+
+    for key in meta:
+        if key.startswith("_") or key in known:
+            continue
+        matches = difflib.get_close_matches(key, sorted(known), n=1, cutoff=TYPO_CUTOFF)
+        # 似ているキーが同じ front matter に既にあるなら、書き分けているだけ。
+        if matches and matches[0] not in meta:
+            warnings.append(
+                f"front matter の '{key}' は '{matches[0]}' の打ち間違いではありませんか"
+            )
+    return warnings
+
+
+def _known_meta_keys(profile: Profile) -> set:
+    """そのプロファイルで意味を持つ front matter のキー。"""
+    return {
+        *RESERVED_META_KEYS,
+        *profile.meta_header,
+        *keywords.get("index_date"),
+        *keywords.get("severity"),
+    }
 
 
 def _rewrite_document_links(soup: BeautifulSoup) -> None:
