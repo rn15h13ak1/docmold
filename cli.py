@@ -45,6 +45,20 @@ INDEX_FILENAME = "index.html"
 DEFAULT_OUTPUT_DIR = SCRIPT_DIR / "out"
 
 
+class _Reporter:
+    """警告を出しつつ件数を数える。
+
+    --strict で「警告があれば失敗扱い」にするため、出しっぱなしにせず集計する。
+    """
+
+    def __init__(self) -> None:
+        self.count = 0
+
+    def warn(self, message: str) -> None:
+        self.count += 1
+        sys.stderr.write(f"警告: {message}\n")
+
+
 @dataclass
 class _Entry:
     """索引 HTML の 1 行。"""
@@ -83,6 +97,10 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("--list-types", action="store_true", help="指定できる種類の一覧を表示して終了")
     parser.add_argument("--list-rules", action="store_true", help="登録済みルールの一覧を表示して終了")
     parser.add_argument("--dry-run", action="store_true", help="変換の検証のみ。HTML は書き出さない")
+    parser.add_argument(
+        "--strict", action="store_true",
+        help="警告があれば失敗扱いにする（終了コード 1）。バッチや定期実行での取りこぼし防止",
+    )
     parser.add_argument("-v", "--verbose", action="store_true", help="1 件ごとの変換結果を出力")
     parser.add_argument("-q", "--quiet", action="store_true", help="警告以外の進捗を抑制")
     return parser.parse_args(argv)
@@ -124,8 +142,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         sys.stderr.write(f"入力エラー: {e}\n")
         return EXIT_CONFIG_ERROR
 
+    reporter = _Reporter()
     for path in missing:
-        sys.stderr.write(f"警告: 見つかりません: {path}\n")
+        reporter.warn(f"見つかりません: {path}")
     if not sources:
         sys.stderr.write("変換対象の .md が見つかりませんでした。\n")
         return EXIT_FAILED
@@ -138,13 +157,13 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         sys.stderr.write(f"対象: {len(sources)} ファイル\n")
         sys.stderr.write(f"出力先: {output_file or output_dir}\n")
 
-    plan = _plan_destinations(sources, output_dir, output_file)
+    plan = _plan_destinations(sources, output_dir, output_file, reporter)
 
     entries: List[_Entry] = []
     failed = 0
     try:
         for source, destination in plan:
-            entry = _convert_one(source, destination, config, args)
+            entry = _convert_one(source, destination, config, args, reporter)
             if entry is None:
                 failed += 1
             else:
@@ -165,9 +184,18 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 sys.stderr.write(f"索引: {index_path}\n")
 
     if not args.quiet:
-        sys.stderr.write(f"完了: 成功 {len(entries)} 件 / 失敗 {failed} 件\n")
+        summary = f"完了: 成功 {len(entries)} 件 / 失敗 {failed} 件"
+        if reporter.count:
+            summary += f" / 警告 {reporter.count} 件"
+        sys.stderr.write(summary + "\n")
         if entries and not args.dry_run:
             sys.stderr.write(f"出力先: {output_file or output_dir}\n")
+
+    if args.strict and reporter.count:
+        sys.stderr.write(
+            f"--strict: 警告が {reporter.count} 件あるため失敗として扱います。\n"
+        )
+        return EXIT_FAILED
     return EXIT_FAILED if failed else EXIT_OK
 
 
@@ -263,7 +291,8 @@ def timestamp_slug(now: Optional[datetime.datetime] = None) -> str:
 
 
 def _plan_destinations(sources: List[Tuple[Path, Path]], output_dir: Path,
-                       output_file: Optional[Path]) -> List[Tuple[Path, Path]]:
+                       output_file: Optional[Path],
+                       reporter: "_Reporter") -> List[Tuple[Path, Path]]:
     """``(入力, 出力先)`` の一覧を、出力先が重ならないように決める。
 
     別々のディレクトリに同名の .md があると出力先がぶつかり、黙って上書きされて
@@ -279,9 +308,9 @@ def _plan_destinations(sources: List[Tuple[Path, Path]], output_dir: Path,
         if destination in taken:
             original = destination
             destination = _unique_destination(destination, source, taken)
-            sys.stderr.write(
-                f"警告: 出力先が重なるため名前を変えました: {source} → {destination.name}"
-                f"（{original.name} は先に変換したファイルが使用）\n"
+            reporter.warn(
+                f"出力先が重なるため名前を変えました: {source} → {destination.name}"
+                f"（{original.name} は先に変換したファイルが使用）"
             )
         taken.add(destination)
         plan.append((source, destination))
@@ -319,7 +348,7 @@ def _destination_for(source: Path, root: Path, output_dir: Path) -> Path:
 # =============================================================================
 
 def _convert_one(source: Path, destination: Path, config: Config,
-                 args: argparse.Namespace) -> Optional[_Entry]:
+                 args: argparse.Namespace, reporter: "_Reporter") -> Optional[_Entry]:
     """1 ファイルを変換して書き出す。失敗したら None。"""
     try:
         result = convert_file(source, config, type_override=args.type_override)
@@ -328,7 +357,7 @@ def _convert_one(source: Path, destination: Path, config: Config,
         return None
 
     for warning in result.warnings:
-        sys.stderr.write(f"警告: {source}: {warning}\n")
+        reporter.warn(f"{source}: {warning}")
 
     if not args.dry_run:
         try:

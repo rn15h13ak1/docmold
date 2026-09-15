@@ -189,6 +189,47 @@ class TestCollisions:
         assert 'href="doc.html"' in html and 'href="doc-b.html"' in html
 
 
+class TestStrict:
+    """--strict: 警告を失敗扱いにする（バッチでの取りこぼし防止）。"""
+
+    def test_unknown_type_fails(self, in_tmp):
+        write(in_tmp / "a.md", "---\ntype: minuets\n---\n\n# A\n")
+        assert main(["a.md", "-o", "out", "-q", "--strict"]) == EXIT_FAILED
+
+    def test_no_warning_succeeds(self, in_tmp):
+        write(in_tmp / "a.md", "---\ntype: minutes\n---\n\n# A\n")
+        assert main(["a.md", "-o", "out", "-q", "--strict"]) == EXIT_OK
+
+    def test_output_is_still_written(self, in_tmp):
+        """失敗扱いでも変換結果は書き出す（内容の確認はできるように）。"""
+        write(in_tmp / "a.md", "---\ntype: minuets\n---\n\n# A\n")
+        main(["a.md", "-o", "out", "-q", "--strict"])
+        assert (in_tmp / "out" / "a.html").is_file()
+
+    def test_missing_image_fails(self, in_tmp):
+        write(in_tmp / "a.md", "![図](nope.png)\n")
+        assert main(["a.md", "-o", "out", "-q", "--strict"]) == EXIT_FAILED
+
+    def test_missing_input_fails(self, in_tmp):
+        write(in_tmp / "a.md", "# A\n")
+        assert main(["a.md", "nope.md", "-o", "out", "-q", "--strict"]) == EXIT_FAILED
+
+    def test_collision_fails(self, in_tmp):
+        write(in_tmp / "a" / "doc.md", "# A\n")
+        write(in_tmp / "b" / "doc.md", "# B\n")
+        assert main(["a/doc.md", "b/doc.md", "-o", "out", "-q", "--strict"]) == EXIT_FAILED
+
+    def test_reason_is_reported(self, in_tmp, capsys):
+        write(in_tmp / "a.md", "---\ntype: minuets\n---\n\n# A\n")
+        main(["a.md", "-o", "out", "-q", "--strict"])
+        assert "--strict" in capsys.readouterr().err
+
+    def test_warning_count_in_summary(self, in_tmp, capsys):
+        write(in_tmp / "a.md", "---\ntype: minuets\n---\n\n# A\n")
+        main(["a.md", "-o", "out"])
+        assert "警告 1 件" in capsys.readouterr().err
+
+
 class TestIndex:
     def test_index_lists_every_document(self, in_tmp):
         write(in_tmp / "docs" / "a.md", "---\ntype: minutes\ntitle: 定例\n---\n\n## 議題\n")
