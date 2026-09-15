@@ -12,6 +12,7 @@
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -36,6 +37,12 @@ from rules.common import HEADING_TAGS, add_class, heading_level, wrap_section
 
 #: 本文からタイトルを拾えなかったときの表示名。
 FALLBACK_TITLE = "(無題)"
+
+#: 文書間リンクとして書き換える拡張子（変換後は .html になる）。
+LINK_EXTS = (".md", ".markdown")
+
+#: 書き換えないリンク。外部参照とページ内アンカー。
+_EXTERNAL_LINK_RE = re.compile(r"\A(?:[a-z][a-z0-9+.-]*:|//|#)", re.IGNORECASE)
 
 
 class ConversionError(RuntimeError):
@@ -90,6 +97,7 @@ def convert_text(text: str, config: Config, *,
     html = md.convert(body)
 
     soup = BeautifulSoup(html, "html.parser")
+    _rewrite_document_links(soup)
     _wrap_sections(soup)
     apply_rules(profile.rules, soup, meta)
 
@@ -153,6 +161,37 @@ def _extension_configs(profile: Profile) -> Dict[str, Dict[str, Any]]:
         },
     }
     return {name: cfg for name, cfg in configs.items() if name in profile.markdown_extensions}
+
+
+def _rewrite_document_links(soup: BeautifulSoup) -> None:
+    """``[設計書](設計書.md)`` のような文書間リンクを ``.html`` に向け直す。
+
+    ディレクトリを一括変換すると入力の階層をそのまま出力に写すため、相対リンクは
+    拡張子だけ替えれば通る。書き換えないと、配布した HTML のリンクが軒並み切れる。
+
+    外部 URL（``http:`` ``mailto:`` など）とページ内アンカー（``#...``）は触らない。
+    リンク先が実際に変換されるかまでは見ない（入力に含まれない .md への参照は
+    書き換えても切れたままだが、含まれる場合のほうが圧倒的に多いため）。
+    """
+    for link in soup.find_all("a", href=True):
+        href = link["href"].strip()
+        if not href or _EXTERNAL_LINK_RE.match(href):
+            continue
+
+        # フラグメントとクエリは温存する（設計書.md#概要 → 設計書.html#概要）。
+        path, separator, suffix = _split_link(href)
+        if path.lower().endswith(LINK_EXTS):
+            base = path.rsplit(".", 1)[0]
+            link["href"] = f"{base}.html{separator}{suffix}"
+
+
+def _split_link(href: str) -> tuple:
+    """``href`` を (パス, 区切り文字, 残り) に分ける。区切りが無ければ ("", "")。"""
+    for separator in ("#", "?"):
+        if separator in href:
+            path, suffix = href.split(separator, 1)
+            return path, separator, suffix
+    return href, "", ""
 
 
 def _wrap_sections(soup: BeautifulSoup) -> None:

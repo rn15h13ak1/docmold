@@ -158,3 +158,46 @@ class TestImageEmbedding:
     def test_external_url_is_left_alone(self, config, make_md):
         result = convert_file(make_md("![図](https://example.com/a.png)\n"), config)
         assert "https://example.com/a.png" in result.html
+
+
+class TestDocumentLinks:
+    """文書間リンクは .html に向け直す（配布物のリンクが切れないように）。"""
+
+    def _href(self, config, markdown_link: str) -> str:
+        html = convert_text(markdown_link, config).html
+        import re
+        found = re.findall(r'<a href="([^"]+)"', html)
+        return found[0] if found else ""
+
+    def test_relative_md_becomes_html(self, config):
+        assert self._href(config, "[設計書](設計書.md)\n") == "設計書.html"
+
+    def test_subdirectory_is_kept(self, config):
+        assert self._href(config, "[b](sub/b.md)\n") == "sub/b.html"
+
+    def test_parent_directory_is_kept(self, config):
+        assert self._href(config, "[a](../a.md)\n") == "../a.html"
+
+    def test_markdown_extension(self, config):
+        assert self._href(config, "[a](a.markdown)\n") == "a.html"
+
+    def test_fragment_is_preserved(self, config):
+        assert self._href(config, "[概要](設計書.md#概要)\n") == "設計書.html#概要"
+
+    def test_query_is_preserved(self, config):
+        assert self._href(config, "[a](a.md?v=2)\n") == "a.html?v=2"
+
+    def test_external_url_is_untouched(self, config):
+        assert self._href(config, "[外部](https://example.com/a.md)\n") == "https://example.com/a.md"
+
+    def test_mailto_is_untouched(self, config):
+        assert self._href(config, "[連絡](mailto:someone@example.com)\n") == "mailto:someone@example.com"
+
+    def test_in_page_anchor_is_untouched(self, config):
+        assert self._href(config, "[節へ](#概要)\n") == "#概要"
+
+    def test_other_extension_is_untouched(self, config):
+        assert self._href(config, "[資料](a.pdf)\n") == "a.pdf"
+
+    def test_uppercase_extension(self, config):
+        assert self._href(config, "[a](A.MD)\n") == "A.html"

@@ -18,6 +18,8 @@
   - 設計書: `figure_caption` / `table_caption` / `cross_reference`
   - 週次報告: `status_badge` / `progress_bar`
 - 完全自己完結 HTML の出力（CSS / JS / 画像 base64 を埋め込み、外部参照ゼロ）
+- 文書間リンク（`[設計書](設計書.md)`）を `.html` に向け直す。フラグメントとクエリは温存し、
+  外部 URL とページ内アンカーは書き換えない
 - 印刷用 `@media print`（手順書は見出しごとに改ページ、設計書は表紙を 1 ページ目に、
   障害報告は DRAFT 透かし）
 - ディレクトリ再帰の一括変換と索引 HTML の生成（`--index`）
