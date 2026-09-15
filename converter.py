@@ -296,7 +296,11 @@ def _resolve_title(meta: Dict[str, Any], soup: BeautifulSoup,
         return title
 
     heading = soup.find(HEADING_TAGS)
-    if heading is not None and heading.get_text(strip=True):
-        return heading.get_text(strip=True)
+    if heading is not None:
+        # 章番号や完了チェックはルールが差し込んだ UI なので、タイトルに含めない
+        # （spec で「1概要」のようになるのを防ぐ）。
+        text = _heading_text(heading)
+        if text:
+            return text
 
     return source_path.stem if source_path is not None else FALLBACK_TITLE

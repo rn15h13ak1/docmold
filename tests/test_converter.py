@@ -201,3 +201,18 @@ class TestDocumentLinks:
 
     def test_uppercase_extension(self, config):
         assert self._href(config, "[a](A.MD)\n") == "A.html"
+
+
+class TestTitleFromHeading:
+    def test_chapter_number_is_not_included(self, config):
+        """spec は見出しに章番号を差し込むため、タイトルに混ざらないこと。"""
+        result = convert_text("---\ntype: spec\n---\n\n# 概要\n\n本文\n", config)
+        assert result.title == "概要"
+
+    def test_step_number_is_not_included(self, config):
+        result = convert_text("---\ntype: procedure\n---\n\n## 手順 1: 停止\n", config)
+        assert result.title == "手順 1: 停止"
+
+    def test_front_matter_title_still_wins(self, config):
+        result = convert_text("---\ntype: spec\ntitle: 明示タイトル\n---\n\n# 概要\n", config)
+        assert result.title == "明示タイトル"
