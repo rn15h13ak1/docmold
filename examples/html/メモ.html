@@ -467,7 +467,21 @@ pre.mermaid svg { max-width: 100%; height: auto; }
 /* 印刷 (PDF 保存) 用。記録として PDF 化する運用を前提にする。 */
 
 @media print {
-  @page { size: A4; margin: 14mm 12mm; }
+  @page {
+    size: A4;
+    margin: 14mm 12mm;
+
+    /* ページ番号。記録として保管するときに参照しやすいように入れる。
+       CSS のマージンボックスに対応したブラウザ（Chrome / Edge）でのみ出る。
+       対応していないブラウザでは、印刷ダイアログの「ヘッダーとフッター」を
+       有効にすると、ブラウザ自身がページ番号を付ける。 */
+    @bottom-center {
+      content: counter(page) " / " counter(pages);
+      font-family: var(--font);
+      font-size: 9pt;
+      color: #666;
+    }
+  }
 
   .dm-body { padding: 0; background: #fff; font-size: 11pt; line-height: 1.7; }
   .dm-page { max-width: none; margin: 0; padding: 0; border: 0; border-radius: 0; }

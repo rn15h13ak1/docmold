@@ -94,3 +94,24 @@ class TestOutput:
             object.__setattr__(profile, "mermaid", MermaidSettings())
         assert 'src="https://example.com/mermaid.min.js"' in html
         assert warnings == []
+
+
+class TestPrintPageNumbers:
+    """印刷時のページ番号（記録として保管するときに参照しやすいように）。"""
+
+    def test_page_counter_is_defined(self, config):
+        css = build_css(config, config.profile("default"))
+        assert "@bottom-center" in css
+        assert 'counter(page) " / " counter(pages)' in css
+
+    def test_cover_page_number_is_suppressed(self, config):
+        """表紙のあるプロファイルでは 1 ページ目に番号を出さない。"""
+        css = build_css(config, config.profile("spec"))
+        assert "@page :first" in css
+
+    def test_no_cover_rule_without_cover_page(self, config):
+        assert "@page :first" not in build_css(config, config.profile("minutes"))
+
+    def test_rule_is_inside_a_print_block(self, config):
+        css = build_css(config, config.profile("spec"))
+        assert css.index("@media print") < css.index("@bottom-center")

@@ -40,6 +40,12 @@ def get_environment() -> Environment:
     return _env
 
 
+#: 表紙のあるプロファイルで、1 ページ目（表紙）のページ番号を消す。
+_COVER_PAGE_CSS = """@media print {
+  @page :first { @bottom-center { content: ""; } }
+}"""
+
+
 def build_css(config: Config, profile: Profile) -> str:
     """テーマ変数 + 共通 CSS + 印刷用 CSS を 1 本にまとめる。"""
     theme = config.theme_for(profile)
@@ -49,6 +55,8 @@ def build_css(config: Config, profile: Profile) -> str:
         read_theme_css(theme.name),
         read_theme_css("print"),
     ]
+    if profile.print.cover_page:
+        parts.append(_COVER_PAGE_CSS)
     return "\n\n".join(part for part in parts if part.strip())
 
 
