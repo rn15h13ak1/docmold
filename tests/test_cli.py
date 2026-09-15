@@ -134,6 +134,61 @@ class TestConversion:
         assert "見つかりませんでした" in capsys.readouterr().err
 
 
+class TestCollisions:
+    """別ディレクトリの同名ファイルが黙って上書きされないこと。"""
+
+    def test_both_files_are_kept(self, in_tmp):
+        write(in_tmp / "a" / "doc.md", "# A\n")
+        write(in_tmp / "b" / "doc.md", "# B\n")
+        assert main(["a/doc.md", "b/doc.md", "-o", "out", "-q"]) == EXIT_OK
+
+        produced = sorted(p.name for p in (in_tmp / "out").iterdir())
+        assert produced == ["doc-b.html", "doc.html"]
+
+    def test_contents_are_not_mixed_up(self, in_tmp):
+        write(in_tmp / "a" / "doc.md", "# A の見出し\n")
+        write(in_tmp / "b" / "doc.md", "# B の見出し\n")
+        main(["a/doc.md", "b/doc.md", "-o", "out", "-q"])
+        assert "A の見出し" in (in_tmp / "out" / "doc.html").read_text(encoding="utf-8")
+        assert "B の見出し" in (in_tmp / "out" / "doc-b.html").read_text(encoding="utf-8")
+
+    def test_collision_is_reported(self, in_tmp, capsys):
+        write(in_tmp / "a" / "doc.md", "# A\n")
+        write(in_tmp / "b" / "doc.md", "# B\n")
+        main(["a/doc.md", "b/doc.md", "-o", "out", "-q"])
+        assert "出力先が重なる" in capsys.readouterr().err
+
+    def test_three_way_collision(self, in_tmp):
+        for name in ("a", "b", "c"):
+            write(in_tmp / name / "doc.md", f"# {name}\n")
+        main(["a/doc.md", "b/doc.md", "c/doc.md", "-o", "out", "-q"])
+        produced = sorted(p.name for p in (in_tmp / "out").iterdir())
+        assert produced == ["doc-b.html", "doc-c.html", "doc.html"]
+
+    def test_same_parent_name_falls_back_to_number(self, in_tmp):
+        """親ディレクトリ名まで同じ場合は連番でずらす。"""
+        write(in_tmp / "x" / "docs" / "doc.md", "# X\n")
+        write(in_tmp / "y" / "docs" / "doc.md", "# Y\n")
+        main(["x/docs/doc.md", "y/docs/doc.md", "-o", "out", "-q"])
+        produced = sorted(p.name for p in (in_tmp / "out").iterdir())
+        assert produced == ["doc-docs.html", "doc.html"]
+
+    def test_no_collision_within_one_directory_tree(self, in_tmp):
+        """階層を保つので、ディレクトリ指定では元から衝突しない。"""
+        write(in_tmp / "docs" / "doc.md", "# A\n")
+        write(in_tmp / "docs" / "sub" / "doc.md", "# B\n")
+        assert main(["docs", "-o", "out", "-q"]) == EXIT_OK
+        assert (in_tmp / "out" / "doc.html").is_file()
+        assert (in_tmp / "out" / "sub" / "doc.html").is_file()
+
+    def test_index_lists_both(self, in_tmp):
+        write(in_tmp / "a" / "doc.md", "---\ntitle: A\n---\n\n本文\n")
+        write(in_tmp / "b" / "doc.md", "---\ntitle: B\n---\n\n本文\n")
+        main(["a/doc.md", "b/doc.md", "-o", "out", "--index", "-q"])
+        html = (in_tmp / "out" / "index.html").read_text(encoding="utf-8")
+        assert 'href="doc.html"' in html and 'href="doc-b.html"' in html
+
+
 class TestIndex:
     def test_index_lists_every_document(self, in_tmp):
         write(in_tmp / "docs" / "a.md", "---\ntype: minutes\ntitle: 定例\n---\n\n## 議題\n")

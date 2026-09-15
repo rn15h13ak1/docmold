@@ -138,11 +138,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         sys.stderr.write(f"対象: {len(sources)} ファイル\n")
         sys.stderr.write(f"出力先: {output_file or output_dir}\n")
 
+    plan = _plan_destinations(sources, output_dir, output_file)
+
     entries: List[_Entry] = []
     failed = 0
     try:
-        for source, root in sources:
-            destination = output_file or _destination_for(source, root, output_dir)
+        for source, destination in plan:
             entry = _convert_one(source, destination, config, args)
             if entry is None:
                 failed += 1
@@ -259,6 +260,49 @@ def _resolve_output(output: Optional[str], single_file: bool,
 def timestamp_slug(now: Optional[datetime.datetime] = None) -> str:
     """出力フォルダ名向けのタイムスタンプ (YYYYMMDD-HHMMSS)。"""
     return (now or datetime.datetime.now()).strftime("%Y%m%d-%H%M%S")
+
+
+def _plan_destinations(sources: List[Tuple[Path, Path]], output_dir: Path,
+                       output_file: Optional[Path]) -> List[Tuple[Path, Path]]:
+    """``(入力, 出力先)`` の一覧を、出力先が重ならないように決める。
+
+    別々のディレクトリに同名の .md があると出力先がぶつかり、黙って上書きされて
+    片方の結果が消える。名前をずらして両方残し、その旨を警告する。
+    """
+    if output_file is not None:
+        return [(source, output_file) for source, _ in sources]
+
+    plan: List[Tuple[Path, Path]] = []
+    taken = set()
+    for source, root in sources:
+        destination = _destination_for(source, root, output_dir)
+        if destination in taken:
+            original = destination
+            destination = _unique_destination(destination, source, taken)
+            sys.stderr.write(
+                f"警告: 出力先が重なるため名前を変えました: {source} → {destination.name}"
+                f"（{original.name} は先に変換したファイルが使用）\n"
+            )
+        taken.add(destination)
+        plan.append((source, destination))
+    return plan
+
+
+def _unique_destination(destination: Path, source: Path, taken: set) -> Path:
+    """重複しない出力先を作る。親ディレクトリ名を足し、それでも重なれば連番。"""
+    stem = destination.stem
+    parent_name = source.parent.name
+    if parent_name:
+        candidate = destination.with_name(f"{stem}-{parent_name}.html")
+        if candidate not in taken:
+            return candidate
+        stem = f"{stem}-{parent_name}"
+
+    for number in range(2, 1000):
+        candidate = destination.with_name(f"{stem}-{number}.html")
+        if candidate not in taken:
+            return candidate
+    raise ConversionError(f"{source}: 出力先の名前を決められません")
 
 
 def _destination_for(source: Path, root: Path, output_dir: Path) -> Path:
