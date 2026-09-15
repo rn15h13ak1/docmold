@@ -1,0 +1,45 @@
+{# 作業手順書。手順カード + 進捗チェック欄。印刷では見出しごとに改ページ。 #}
+{% extends "base.html" %}
+{% block content_class %}dm-content--stepped{% endblock %}
+
+{% block header_extra %}
+<p class="dm-note dm-note--screen">チェック欄はブラウザ上の作業用です（保存されません）。記録には印刷 / PDF 保存をお使いください。</p>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// コピーボタン。セキュアコンテキスト外 (file:// / http://) で開かれることがあり
+// navigator.clipboard が使えないため、execCommand へフォールバックする。
+document.addEventListener('click', function (event) {
+  var button = event.target.closest('[data-dm-copy]');
+  if (!button) return;
+  var pre = document.getElementById(button.getAttribute('data-dm-copy'));
+  if (!pre) return;
+
+  var text = pre.innerText;
+  var done = function () {
+    var original = button.textContent;
+    button.textContent = 'コピーしました';
+    setTimeout(function () { button.textContent = original; }, 1500);
+  };
+
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(done, function () { fallback(text, done); });
+  } else {
+    fallback(text, done);
+  }
+});
+
+function fallback(text, done) {
+  var area = document.createElement('textarea');
+  area.value = text;
+  area.setAttribute('readonly', '');
+  area.style.position = 'fixed';
+  area.style.opacity = '0';
+  document.body.appendChild(area);
+  area.select();
+  try { document.execCommand('copy'); done(); } catch (e) { /* 失敗時は手動コピー */ }
+  document.body.removeChild(area);
+}
+</script>
+{% endblock %}

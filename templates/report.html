@@ -1,0 +1,22 @@
+{# 障害報告。冒頭にサマリカード（発生 / 復旧 / 影響範囲 / 重要度）。 #}
+{% extends "base.html" %}
+{% block content_class %}dm-content--report{% endblock %}
+
+{% block header_extra %}
+{% if derived.get('severity') %}
+<p class="dm-header__severity">重要度 <span class="dm-badge dm-badge--{{ derived['severity'].kind }}">{{ derived['severity'].text }}</span></p>
+{% endif %}
+{% endblock %}
+
+{% block summary %}
+{% if derived.get('summary') %}
+<section class="dm-summary" aria-label="サマリ">
+  {% for card in derived['summary'] %}
+  <div class="dm-summary__card dm-summary__card--{{ card.kind }}">
+    <p class="dm-summary__label">{{ card.label }}</p>
+    <p class="dm-summary__value">{{ card.value }}</p>
+  </div>
+  {% endfor %}
+</section>
+{% endif %}
+{% endblock %}

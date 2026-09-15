@@ -1,0 +1,51 @@
+# docmold ユーザ設定のテンプレート。
+#
+#   copy config.example.yaml config.yaml     （Windows）
+#   cp   config.example.yaml config.yaml     （macOS / Linux）
+#
+# 同梱の profiles.yaml に再帰マージされるため、変えたいところだけ書けばよい。
+# 探索順: CWD/config.yaml → docmold.py と同じディレクトリ/config.yaml
+# --config で明示指定もできる。
+
+# --- 既存プロファイルの一部だけ変える ---------------------------------------
+# profiles:
+#   incident:
+#     watermark: false          # 確定版なので透かしを消す
+#   spec:
+#     toc:
+#       depth: 4
+
+# --- テーマの色を自社色に差し替える -----------------------------------------
+# themes:
+#   corporate:
+#     accent: "#006c4b"
+#     accent_weak: "#e6f2ee"
+
+# --- 種類を追加する ----------------------------------------------------------
+# 追加は「YAML 数行 + （必要なら）ルール関数 1 つ」で済む。
+# 独自ルールを足す場合は rules/ に関数を書き、@rule("名前") で登録する。
+#
+# themes:
+#   review:
+#     accent: "#7048a8"
+#     accent_weak: "#f0ebf8"
+#     accent_text: "#ffffff"
+#     font: "'Meiryo', sans-serif"
+#     mono: "'Consolas', monospace"
+#     text: "#1f2328"
+#     muted: "#5a6472"
+#     border: "#ded5ea"
+#     background: "#ffffff"
+#     surface: "#faf8fd"
+#     ok: "#1e7e45"
+#     warn: "#b8860b"
+#     danger: "#c0392b"
+#
+# profiles:
+#   review:
+#     description: レビュー記録
+#     template: article.html
+#     theme: review
+#     toc: true
+#     rules: [todo_checklist, status_badge]
+#     meta_header: [対象, レビュー日, 参加者]

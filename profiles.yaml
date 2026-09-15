@@ -1,0 +1,103 @@
+# docmold 同梱の既定プロファイル定義。
+#
+# このファイルは常に読み込まれ、ユーザ設定 config.yaml がその上に再帰マージされる。
+# 直接編集せず、config.example.yaml をコピーした config.yaml に差分を書くこと
+# （ツール更新で上書きされるため）。
+#
+# profiles.<type> のキー:
+#   template     templates/ 直下の HTML ファイル名（構造）
+#   theme        themes.<name>（見た目 = CSS 変数）
+#   toc          false / true / {depth: 1-6, numbering: bool}
+#   rules        意味づけの後処理。--list-rules で一覧
+#   extensions   基本拡張に追加する Markdown 拡張
+#   meta_header  冒頭のメタ表に出す front matter のキーと順序
+#   print        {page_break_per_h1, page_break_per_h2, cover_page}
+#   watermark    透かし文字列（例: DRAFT）。false / 省略で無効
+#   mermaid      true で mermaid.min.js を埋め込む（assets/ に同梱が必要）
+#   description  --list-types に出す説明
+
+themes:
+  corporate:
+    accent: "#00529b"
+    accent_weak: "#e8f0f8"
+    accent_text: "#ffffff"
+    font: "'Meiryo', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif"
+    mono: "'Consolas', 'Menlo', 'MS Gothic', monospace"
+    text: "#1f2328"
+    muted: "#5a6472"
+    border: "#d5dbe2"
+    background: "#ffffff"
+    surface: "#f7f9fb"
+    ok: "#1e7e45"
+    warn: "#b8860b"
+    danger: "#c0392b"
+
+  alert:
+    accent: "#c0392b"
+    accent_weak: "#fdecea"
+    accent_text: "#ffffff"
+    font: "'Meiryo', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif"
+    mono: "'Consolas', 'Menlo', 'MS Gothic', monospace"
+    text: "#1f2328"
+    muted: "#5a6472"
+    border: "#e3cdc9"
+    background: "#ffffff"
+    surface: "#fdf6f5"
+    ok: "#1e7e45"
+    warn: "#b8860b"
+    danger: "#c0392b"
+
+profiles:
+  default:
+    description: 汎用（type 未指定時）
+    template: article.html
+    theme: corporate
+    toc: false
+
+  minutes:
+    description: 議事録
+    template: article.html
+    theme: corporate
+    toc: true
+    rules: [attendee_table, todo_checklist, decision_highlight]
+    meta_header: [日時, 場所, 出席者, 次回]
+
+  procedure:
+    description: 作業手順書
+    template: stepped.html
+    theme: corporate
+    toc: true
+    rules: [step_numbering, command_block_copy, rollback_callout]
+    meta_header: [対象システム, 実施日, 実施者, 所要時間]
+    print:
+      page_break_per_h2: true
+
+  incident:
+    description: 障害報告
+    template: report.html
+    theme: alert
+    toc: true
+    rules: [severity_badge, impact_summary, timeline_table]
+    meta_header: [発生日時, 復旧日時, 影響範囲, 重要度]
+    watermark: DRAFT
+
+  spec:
+    description: 設計書
+    template: document.html
+    theme: corporate
+    toc:
+      depth: 3
+      numbering: true
+    rules: [figure_caption, table_caption, cross_reference]
+    meta_header: [版数, 作成日, 作成者, 承認者]
+    print:
+      cover_page: true
+      page_break_per_h1: true
+
+  weekly:
+    description: 週次報告
+    template: dashboard.html
+    theme: corporate
+    toc: false
+    rules: [status_badge, progress_bar]
+    meta_header: [期間, 報告者, チーム]

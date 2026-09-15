@@ -1,0 +1,73 @@
+{# すべてのテンプレートの土台。CSS / JS / 画像を埋め込み、外部参照を持たない 1 ファイル HTML を出す。 #}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ title }}</title>
+<meta name="generator" content="docmold">
+<meta name="docmold-type" content="{{ profile.name }}">
+<style>
+{{ css | safe }}
+{{ pygments_css | safe }}
+{% block extra_css %}{% endblock %}
+</style>
+</head>
+<body class="dm-body dm-body--{{ profile.name }}{% if print_settings.page_break_per_h1 %} dm-print-break-h1{% endif %}{% if print_settings.page_break_per_h2 %} dm-print-break-h2{% endif %}">
+{% if watermark %}
+<div class="dm-watermark" aria-hidden="true">{{ watermark }}</div>
+{% endif %}
+
+{% block cover %}{% endblock %}
+
+<div class="dm-page">
+  <header class="dm-header">
+    <h1 class="dm-title">{{ title }}</h1>
+    {% block header_extra %}{% endblock %}
+  </header>
+
+  {% if meta_header %}
+  <table class="dm-meta">
+    <tbody>
+      {% for row in meta_header %}
+      <tr><th scope="row">{{ row.label }}</th><td>{{ row.value }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  {% block summary %}{% endblock %}
+
+  {% if toc %}
+  <nav class="dm-toc" aria-label="目次">
+    <p class="dm-toc__title">目次</p>
+    <ul class="dm-toc__list">
+      {% for item in toc %}
+      <li class="dm-toc__item dm-toc__item--h{{ item.level }}">
+        <a href="#{{ item.anchor }}">{% if toc_numbering and item.number %}<span class="dm-toc__number">{{ item.number }}</span>{% endif %}{{ item.text }}</a>
+      </li>
+      {% endfor %}
+    </ul>
+  </nav>
+  {% endif %}
+
+  <main class="dm-content {% block content_class %}{% endblock %}">
+{{ content | safe }}
+  </main>
+
+  <footer class="dm-footer">
+    <span class="dm-footer__type">{{ profile.description or profile.name }}</span>
+  </footer>
+</div>
+
+{% if mermaid_js %}
+<script>
+{{ mermaid_js | safe }}
+</script>
+<script>
+if (window.mermaid) { window.mermaid.initialize({ startOnLoad: true, securityLevel: 'strict' }); }
+</script>
+{% endif %}
+{% block scripts %}{% endblock %}
+</body>
+</html>

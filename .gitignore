@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Editors / OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.claude/
+*.swp
+*~
+
+# 個人設定（config.example.yaml をテンプレに）
+# 同梱の profiles.yaml は追跡対象。ユーザ側の差分だけを config.yaml に書く。
+config.yaml
+
+# 既定の出力先（out/<YYYYMMDD-HHMMSS>/ が実行ごとに増える）
+# -o で別の場所に出した場合はここでは無視されないので、必要なら追記すること。
+/out/
+
+# assets/ の同梱資材（mermaid.min.js など）は追跡対象。
+# CDN が使えない環境向けにリポジトリへ同梱する前提のため、無視しない。

@@ -1,0 +1,38 @@
+{# 一括変換で作る索引ページ。出力ディレクトリからの相対リンクを並べる。 #}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ title }}</title>
+<meta name="generator" content="docmold">
+<style>
+{{ css | safe }}
+</style>
+</head>
+<body class="dm-body dm-body--index">
+<div class="dm-page">
+  <header class="dm-header">
+    <h1 class="dm-title">{{ title }}</h1>
+    <p class="dm-note">{{ entries | length }} 件 / 生成 {{ generated_at }}</p>
+  </header>
+  <main class="dm-content">
+    <table class="dm-table dm-index">
+      <thead>
+        <tr><th>タイトル</th><th>種類</th><th>ファイル</th></tr>
+      </thead>
+      <tbody>
+        {% for entry in entries %}
+        <tr>
+          <td><a href="{{ entry.href }}">{{ entry.title }}</a></td>
+          <td><span class="dm-badge dm-badge--default">{{ entry.type }}</span></td>
+          <td class="dm-index__path">{{ entry.source }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </main>
+  <footer class="dm-footer"><span class="dm-footer__type">docmold index</span></footer>
+</div>
+</body>
+</html>

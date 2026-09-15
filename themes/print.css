@@ -1,0 +1,49 @@
+/* 印刷 (PDF 保存) 用。記録として PDF 化する運用を前提にする。 */
+
+@media print {
+  @page { size: A4; margin: 14mm 12mm; }
+
+  .dm-body { padding: 0; background: #fff; font-size: 11pt; line-height: 1.7; }
+  .dm-page { max-width: none; margin: 0; padding: 0; border: 0; border-radius: 0; }
+
+  /* 画面用の注記とコピーボタンは紙に出さない。 */
+  .dm-note--screen, .dm-code__copy { display: none; }
+
+  a { color: inherit; text-decoration: none; }
+  /* 目次と相互参照のリンク先は紙では追えないため、URL は展開しない。 */
+
+  .dm-section, .dm-step, .dm-summary__card, .dm-callout, .dm-figure, .dm-timeline__item {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  h1, h2, h3, h4 { break-after: avoid; page-break-after: avoid; }
+  table { break-inside: auto; }
+  tr, th, td { break-inside: avoid; page-break-inside: avoid; }
+
+  /* プロファイルの print 設定で付くクラス。 */
+  .dm-print-break-h1 .dm-content h1 { break-before: page; page-break-before: always; }
+  .dm-print-break-h2 .dm-content h2 { break-before: page; page-break-before: always; }
+  .dm-print-break-h1 .dm-content > .dm-section:first-child h1,
+  .dm-print-break-h2 .dm-content > .dm-section:first-child h2 {
+    break-before: auto;
+    page-break-before: auto;
+  }
+
+  /* 表紙は必ず 1 ページ目に単独で出す。 */
+  .dm-cover { padding: 60mm 0 0; border: 0; break-after: page; page-break-after: always; }
+
+  /* 透かしは全ページに出したいので、固定配置のまま大きく中央に置く。 */
+  .dm-watermark {
+    top: 50%;
+    left: 50%;
+    right: auto;
+    bottom: auto;
+    transform: translate(-50%, -50%) rotate(-30deg);
+    font-size: 72pt;
+    opacity: 0.12;
+    border-width: 8px;
+  }
+
+  .dm-content--dashboard { display: block; }
+  .dm-content--dashboard > .dm-section { margin-bottom: 12px; }
+}

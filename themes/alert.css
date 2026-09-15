@@ -1,0 +1,4 @@
+/* alert テーマ固有の上書き。警告色の文書向けに、見出し周りを少し強くする。 */
+
+.dm-header { border-bottom-width: 4px; }
+.dm-content h2 { background: var(--accent-weak); padding-top: 4px; padding-bottom: 4px; }
