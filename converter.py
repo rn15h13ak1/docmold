@@ -32,7 +32,7 @@ from assets import embed_images
 from config import DEFAULT_PROFILE, Config, Profile
 from frontmatter import meta_to_text, split_front_matter
 from renderer import render
-from rules import DERIVED_KEY, apply_rules
+from rules import DERIVED_KEY, apply_rules, keywords
 from rules.common import HEADING_TAGS, add_class, heading_level, wrap_section
 
 #: 本文からタイトルを拾えなかったときの表示名。
@@ -95,6 +95,9 @@ def convert_text(text: str, config: Config, *,
         extension_configs=_extension_configs(profile),
     )
     html = md.convert(body)
+
+    # 検出語は設定で差し替えられる。ルールを適用する前に有効化する。
+    keywords.use(config.keywords)
 
     soup = BeautifulSoup(html, "html.parser")
     _rewrite_document_links(soup)

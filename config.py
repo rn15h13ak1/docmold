@@ -178,6 +178,7 @@ class Config:
 
     profiles: Dict[str, Profile]
     themes: Dict[str, Theme]
+    keywords: Dict[str, List[str]] = field(default_factory=dict)
     config_path: Optional[Path] = None
 
     def profile(self, name: str) -> Profile:
@@ -246,9 +247,12 @@ def _load_yaml(path: Path) -> Dict[str, Any]:
 
 def build_config(raw: Mapping[str, Any], config_path: Optional[Path] = None) -> Config:
     """マージ済みの dict を検証して ``Config`` にする。"""
-    unknown = set(raw) - {"profiles", "themes"}
+    unknown = set(raw) - {"profiles", "themes", "keywords"}
     if unknown:
-        raise ConfigError(f"未知のトップレベルキー: {sorted(unknown)} (使えるキー: profiles, themes)")
+        raise ConfigError(
+            f"未知のトップレベルキー: {sorted(unknown)}"
+            f" (使えるキー: keywords, profiles, themes)"
+        )
 
     themes_raw = raw.get("themes") or {}
     if not isinstance(themes_raw, Mapping):
@@ -264,6 +268,25 @@ def build_config(raw: Mapping[str, Any], config_path: Optional[Path] = None) -> 
             variables={str(k): str(v) for k, v in value.items()},
         )
 
+    keywords_raw = raw.get("keywords") or {}
+    if not isinstance(keywords_raw, Mapping):
+        raise ConfigError("keywords: マッピングで指定してください")
+    from rules import keywords as keyword_registry  # 循環 import 回避のため遅延 import
+
+    missing_groups = keyword_registry.unknown_groups(keywords_raw)
+    if missing_groups:
+        raise ConfigError(
+            f"keywords: 未知のグループ: {sorted(missing_groups)}"
+            f" (使えるグループ: {', '.join(sorted(keyword_registry.GROUPS))})"
+        )
+    keyword_overrides = {
+        str(group): _as_str_list(words, f"keywords.{group}")
+        for group, words in keywords_raw.items()
+    }
+    for group, words in keyword_overrides.items():
+        if not words:
+            raise ConfigError(f"keywords.{group}: 空にはできません（検出できなくなります）")
+
     profiles_raw = raw.get("profiles") or {}
     if not isinstance(profiles_raw, Mapping):
         raise ConfigError("profiles: マッピングで指定してください")
@@ -272,7 +295,8 @@ def build_config(raw: Mapping[str, Any], config_path: Optional[Path] = None) -> 
     if DEFAULT_PROFILE not in profiles:
         raise ConfigError(f"profiles に '{DEFAULT_PROFILE}' が必要です (type 未指定時に使います)")
 
-    config = Config(profiles=profiles, themes=themes, config_path=config_path)
+    config = Config(profiles=profiles, themes=themes,
+                    keywords=keyword_overrides, config_path=config_path)
     # テーマ未定義・ルール未登録は読み込み時点で弾く (変換の途中で落とさない)。
     from rules import unknown_rules  # 循環 import 回避のため遅延 import
 

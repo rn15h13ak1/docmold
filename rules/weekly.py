@@ -3,21 +3,18 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
-from rules import rule
+from rules import keywords, rule
 from rules.common import (
     add_class, body_rows, cell_at, classify_status, make_badge, parse_percent,
     replace_cell_content, table_column_index,
 )
-
-_STATUS_COLUMNS = ("状態", "ステータス", "status", "進行", "対応状況")
-_PROGRESS_COLUMNS = ("進捗", "進捗率", "達成率", "progress", "完了率")
 
 
 @rule("status_badge")
 def status_badge(soup: Any, meta: Dict[str, Any]) -> None:
     """表の「状態」列をバッジ化する。"""
     for table in soup.find_all("table"):
-        index = table_column_index(table, _STATUS_COLUMNS)
+        index = table_column_index(table, keywords.get("status_column"))
         if index is None:
             continue
         add_class(table, "dm-table")
@@ -34,7 +31,7 @@ def status_badge(soup: Any, meta: Dict[str, Any]) -> None:
 def progress_bar(soup: Any, meta: Dict[str, Any]) -> None:
     """表の「進捗」列の ``80%`` を進捗バーにする。"""
     for table in soup.find_all("table"):
-        index = table_column_index(table, _PROGRESS_COLUMNS)
+        index = table_column_index(table, keywords.get("progress_column"))
         if index is None:
             continue
         add_class(table, "dm-table")

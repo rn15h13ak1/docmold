@@ -3,15 +3,11 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
-from rules import rule
+from rules import keywords, rule
 from rules.common import (
     add_class, find_headings, heading_level, make_callout, normalize, section_nodes,
     wrap_section,
 )
-
-_ROLLBACK_HEADINGS = ("切戻し", "切り戻し", "ロールバック", "rollback", "復旧手順", "リカバリ")
-_ROLLBACK_KEYS = tuple(normalize(word) for word in _ROLLBACK_HEADINGS)
-_STEP_HEADINGS = ("手順", "step")
 
 
 @rule("step_numbering")
@@ -61,7 +57,7 @@ def command_block_copy(soup: Any, meta: Dict[str, Any]) -> None:
 @rule("rollback_callout")
 def rollback_callout(soup: Any, meta: Dict[str, Any]) -> None:
     """「切戻し手順」節を警告コールアウトにして目立たせる。"""
-    for heading in find_headings(soup, _ROLLBACK_HEADINGS):
+    for heading in find_headings(soup, keywords.get("rollback")):
         nodes = section_nodes(heading)
         box = make_callout(soup, "rollback", "切戻し手順")
         heading.insert_after(box)
@@ -75,7 +71,7 @@ def _step_headings(soup: Any) -> list:
     「手順」「Step」を含む見出しがあればそれを使う。無ければ本文の最上位より
     1 段下の見出し（多くは ``h2``）を手順とみなす。
     """
-    explicit = _without_rollback(find_headings(soup, _STEP_HEADINGS))
+    explicit = _without_rollback(find_headings(soup, keywords.get("step")))
     if explicit:
         return explicit
 
@@ -92,7 +88,8 @@ def _without_rollback(headings: list) -> list:
     「切戻し手順」は 手順 1 → 2 → 3 と続く作業の一部ではなく、異常時にだけ実施する
     復旧手順。番号を振ると「最後に必ず実施する手順」に見えてしまう。
     """
+    rollback = [normalize(word) for word in keywords.get("rollback")]
     return [
         heading for heading in headings
-        if not any(word in normalize(heading.get_text()) for word in _ROLLBACK_KEYS)
+        if not any(word in normalize(heading.get_text()) for word in rollback)
     ]

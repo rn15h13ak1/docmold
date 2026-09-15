@@ -11,6 +11,8 @@
 - 3 層分離（テンプレート / ルール / テーマ）と YAML 駆動のプロファイル定義
   - 同梱プロファイル: `default` / `minutes` / `procedure` / `incident` / `spec` / `weekly`
   - 同梱 `profiles.yaml` にユーザ `config.yaml` を再帰マージ（差分だけ書けばよい）
+- ルールの検出語（「出席者」「ToDo」「時刻」「状態」など 13 グループ）を `config.yaml` の
+  `keywords:` で差し替え可能。表記ゆれへの対応でコードを直さずに済む
 - ルール層のレジストリ（`@rule` デコレータ）。種類の追加は「YAML 数行 + 関数 1 つ」
   - 議事録: `attendee_table` / `todo_checklist` / `decision_highlight`
   - 手順書: `step_numbering` / `command_block_copy` / `rollback_callout`

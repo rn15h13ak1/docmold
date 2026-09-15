@@ -4,15 +4,11 @@ from __future__ import annotations
 import re
 from typing import Any, Dict
 
-from rules import rule
+from rules import keywords, rule
 from rules.common import (
     add_class, body_rows, cell_at, find_headings, find_in_section, make_badge,
     make_callout, section_nodes, table_column_index, replace_cell_content,
 )
-
-_ATTENDEE_HEADINGS = ("出席者", "参加者", "参加メンバー", "attendee", "participants")
-_TODO_HEADINGS = ("todo", "to do", "アクション", "宿題", "持ち帰り", "action item")
-_DECISION_HEADINGS = ("決定事項", "決定", "合意事項", "decision")
 
 # 「担当: 山田」「担当者：山田」「@山田」を担当者として拾う。
 _OWNER_RE = re.compile(r"(?:担当者?\s*[:：]\s*|@)\s*([^\s、,（(/]+)")
@@ -23,14 +19,14 @@ _TASK_MARK_RE = re.compile(r"^\s*\[([ xX])\]\s*")
 @rule("attendee_table")
 def attendee_table(soup: Any, meta: Dict[str, Any]) -> None:
     """「出席者」節の氏名をバッジ化する（リスト・表のどちらでも）。"""
-    for heading in find_headings(soup, _ATTENDEE_HEADINGS):
+    for heading in find_headings(soup, keywords.get("attendee")):
         for ul in find_in_section(heading, ["ul", "ol"]):
             add_class(ul, "dm-attendees")
             for li in ul.find_all("li", recursive=False):
                 add_class(li, "dm-attendee")
         for table in find_in_section(heading, ["table"]):
             add_class(table, "dm-table", "dm-table--attendees")
-            index = table_column_index(table, ["氏名", "名前", "出席者", "name"])
+            index = table_column_index(table, ["氏名", "名前", *keywords.get("attendee")])
             for row in body_rows(table):
                 cell = cell_at(row, index)
                 if cell is not None and cell.get_text(strip=True):
@@ -40,7 +36,7 @@ def attendee_table(soup: Any, meta: Dict[str, Any]) -> None:
 @rule("todo_checklist")
 def todo_checklist(soup: Any, meta: Dict[str, Any]) -> None:
     """「ToDo」節のリストをチェックボックス化し、担当者をバッジにする。"""
-    for heading in find_headings(soup, _TODO_HEADINGS):
+    for heading in find_headings(soup, keywords.get("todo")):
         for ul in find_in_section(heading, ["ul", "ol"]):
             add_class(ul, "dm-checklist")
             for li in ul.find_all("li"):
@@ -58,7 +54,7 @@ def todo_checklist(soup: Any, meta: Dict[str, Any]) -> None:
 @rule("decision_highlight")
 def decision_highlight(soup: Any, meta: Dict[str, Any]) -> None:
     """「決定事項」節をコールアウトで囲んで目立たせる。"""
-    for heading in find_headings(soup, _DECISION_HEADINGS):
+    for heading in find_headings(soup, keywords.get("decision")):
         nodes = section_nodes(heading)
         if not nodes:
             continue

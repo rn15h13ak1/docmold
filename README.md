@@ -419,6 +419,8 @@ doc.html  doc-b.html
 
 読み込み順は **同梱 `profiles.yaml` → ユーザ `config.yaml`（再帰マージ）**。
 
+トップレベルに書けるのは `profiles` / `themes` / `keywords` の 3 つだけです。
+
 `profiles.<type>` に書けるキー:
 
 | キー | 型 | 説明 |
@@ -466,6 +468,29 @@ YAML は「どんな表現があるか」の一覧として読める状態に保
 ルールは **どの種類からでも使えます**。`rules:` に並べた順に適用されるため、
 `cross_reference` は採番ルール（`figure_caption` / `table_caption`）より後に置いてください。
 
+### 検出語を調整する（`keywords`）
+
+ルールは見出しや表のヘッダ名で対象を見分けます。その語は `config.yaml` で変えられます。
+
+```yaml
+keywords:
+  status_column: [状態, ステータス, status, 進行, 対応状況, 進捗状況]
+  status_ok:     [完了, 済, 対応済, クローズ, done, closed, 検収済]
+```
+
+グループ単位の**置き換え**なので、語を足したい場合も既定値ごと書いてください。
+書かなかったグループは既定のままです。
+
+| グループ | 用途 |
+| --- | --- |
+| `attendee` / `todo` / `decision` | 議事録の各節の見出し |
+| `step` / `rollback` | 手順の見出し / 切戻しの見出し |
+| `severity` / `time_column` / `timeline` | 重要度 / 時刻列 / 時系列の見出し |
+| `status_column` / `progress_column` | 状態列 / 進捗列のヘッダ名 |
+| `status_ok` / `status_warn` / `status_danger` | 状態バッジの色分け |
+
+既定値の全文は [config.example.yaml](config.example.yaml) に載せてあります。
+
 ---
 
 ## front matter のキー
@@ -495,7 +520,7 @@ YAML は「どんな表現があるか」の一覧として読める状態に保
 ## 既知の制約
 
 - **ルールの検出は見出し文字列と表のヘッダ名に依存** します。「出席者」「ToDo」「時刻」「状態」「進捗」など、
-  想定の語を含まない見出し / 列名は対象になりません（表記ゆれは `rules/common.py` の定数に追記して対応）。
+  想定の語を含まない見出し / 列名は対象になりません（`config.yaml` の `keywords:` で調整できます）。
 - **Mermaid は同梱が必要** です。`mermaid: true` にしても `assets/mermaid.min.js` が無ければ警告のうえ図は描画されません
   （CDN は使えない前提のため、自動取得はしません）。
 - **画像は 8 MB まで** 埋め込みます。それを超えるものは警告のうえスキップします（base64 でファイルが肥大するため）。

@@ -9,16 +9,13 @@ import re
 import unicodedata
 from typing import Any, Dict, Iterable, List, Optional, Sequence
 
+from rules import keywords
+
 HEADING_TAGS = ("h1", "h2", "h3", "h4", "h5", "h6")
 
-#: 状態を表す語 → バッジの種類 (CSS クラス ``dm-badge--<kind>``)。
-STATUS_KINDS = {
-    "ok": ("完了", "済", "対応済", "クローズ", "done", "closed", "ok", "正常", "成功", "解決済"),
-    "warn": ("進行中", "対応中", "作業中", "保留", "確認中", "wip", "in progress", "doing",
-             "遅延", "注意", "warn", "warning", "中"),
-    "danger": ("未着手", "未対応", "失敗", "停止", "異常", "ng", "blocked", "todo", "open",
-               "高", "重大", "critical", "緊急"),
-}
+#: バッジの種類 (CSS クラス ``dm-badge--<kind>``) → 検出語のグループ名。
+#: 語そのものは rules/keywords.py にあり、config.yaml から差し替えられる。
+STATUS_GROUPS = (("ok", "status_ok"), ("warn", "status_warn"), ("danger", "status_danger"))
 
 _PERCENT_RE = re.compile(r"(\d{1,3}(?:\.\d+)?)\s*%")
 
@@ -80,14 +77,20 @@ def add_class(tag: Any, *classes: str) -> None:
 
 
 def classify_status(text: str) -> Optional[str]:
-    """状態文字列からバッジの種類を判定する。該当なしは None。"""
+    """状態文字列からバッジの種類を判定する。該当なしは None。
+
+    完全一致を先に見る。「未着手」が warn の「中」を含むように、部分一致だけだと
+    取り違えるため。
+    """
     value = normalize(text)
     if not value:
         return None
-    for kind, words in STATUS_KINDS.items():
+
+    groups = [(kind, keywords.get(group)) for kind, group in STATUS_GROUPS]
+    for kind, words in groups:
         if any(normalize(word) == value for word in words):
             return kind
-    for kind, words in STATUS_KINDS.items():
+    for kind, words in groups:
         if any(normalize(word) in value for word in words):
             return kind
     return None
