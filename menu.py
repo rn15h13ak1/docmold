@@ -20,18 +20,15 @@ import subprocess
 import sys
 from pathlib import Path
 
-try:
-    import cli as docmold_cli
-    import config as docmold_config
-except ModuleNotFoundError as e:
-    # menu.bat のダブルクリック起動で、依存が入っていない場合に
-    # トレースバックではなく対処を表示する
-    if e.name not in ("yaml", "markdown", "jinja2", "bs4"):
-        raise
-    print(f"必要なライブラリ {e.name} が入っていません。")
-    print("次のコマンドでインストールしてください:")
-    print("    pip install -r requirements.txt")
-    sys.exit(2)
+# menu.bat のダブルクリック起動や、別ツールの Python で起動された場合に
+# トレースバックではなく対処を表示する。cli の import より先に確認すること
+# （cli は markdown / jinja2 / bs4 を引き込むため）。
+from deps import ensure  # noqa: E402
+
+ensure()
+
+import cli as docmold_cli  # noqa: E402
+import config as docmold_config  # noqa: E402
 
 WIDTH = 60
 TOOL_DIR = Path(__file__).resolve().parent

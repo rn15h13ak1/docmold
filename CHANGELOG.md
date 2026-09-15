@@ -23,6 +23,8 @@
 - ディレクトリ再帰の一括変換と索引 HTML の生成（`--index`）
 - `--list-types` / `--list-rules`、`--type` による上書き、`--dry-run`
 - 対話メニュー（`menu.py` / `menu.bat`）
+- 依存が足りない Python で起動された場合、トレースバックではなく実行中の
+  インタプリタと導入コマンドを案内して終了する（`deps.py`）
 - サンプル HTML（`examples/html/`）をリポジトリで管理。`tools/build_examples.py` で再生成し、
   古くなると `tests/test_examples.py` が落ちて再生成を促す
 - 既定の出力先は docmold 同梱の `out/<YYYYMMDD-HHMMSS>/`

@@ -17,6 +17,12 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
+from deps import ensure  # noqa: E402
+
+# 依存の確認は cli を import する前に行う。インタプリタを取り違えたときに
+# トレースバックではなく、入れ方の案内を出すため。
+ensure()
+
 from cli import main  # noqa: E402
 
 if __name__ == "__main__":

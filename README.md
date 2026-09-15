@@ -121,6 +121,22 @@ Anaconda 以外の環境では:
 pip install -r requirements.txt
 ```
 
+**依存は「実行に使う Python」に入っている必要があります。** 別のツールの仮想環境や、
+依存を入れていない Python で起動すると、次の案内が出て終了コード 2 で止まります。
+
+```
+必要なライブラリが入っていません: Markdown, Jinja2, beautifulsoup4
+
+  実行中の Python: /path/to/other-tool/.venv/bin/python
+
+次のいずれかで解決できます。
+  1) この Python に入れる
+     /path/to/other-tool/.venv/bin/python -m pip install -r /path/to/docmold/requirements.txt
+  2) 依存が入っている Python で実行する
+```
+
+どの Python で動いているかが表示されるので、取り違えていないか確認してください。
+
 ---
 
 ## 使い方ガイド
@@ -454,6 +470,7 @@ YAML は「どんな表現があるか」の一覧として読める状態に保
 docmold/
 ├── docmold.py            エントリポイント（CLI）
 ├── menu.py               対話メニュー
+├── deps.py               依存の確認と案内（サードパーティを import しない）
 ├── menu.bat              メニューの起動用（Windows でダブルクリック）
 ├── cli.py                引数解釈・入出力の解決・索引生成
 ├── config.py             プロファイル定義の読み込みと検証
