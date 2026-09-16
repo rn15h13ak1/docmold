@@ -11,7 +11,7 @@ from typing import Any, Dict, List
 
 from rules import rule, warn
 from rules.common import (
-    HEADING_TAGS, add_class, classify_status, heading_level, make_badge,
+    HEADING_TAGS, add_class, classify_status, heading_level, make_badge, wrap_section,
 )
 
 #: 欄の区切り。全角・半角の縦棒どちらでも書ける。
@@ -308,19 +308,23 @@ def _make_column(soup: Any, title: str, nodes: List[Any]) -> Any:
 
 @rule("topic_cards")
 def topic_cards(soup: Any, meta: Dict[str, Any]) -> None:
-    """1 列として残った節の箇条書きを、項目ごとの枠にする。
+    """1 列にした節を、小見出しごとの枠に分ける。
 
-    ``group_columns`` が列に割り付けなかった節（トピックスなど）が対象。
-    項目 1 つが 1 枠になり（枠は縦に積む）、枠の中は複数行でも書ける。
-    番号付きリスト (``<ol>``) は順序が読めなくなるため触らない。
+    ``group_columns`` が 1 列にした節（1 つ目の見出し 2）が対象。
+    ``### 見出し`` から次の ``###`` までが 1 枠になり、枠の中は複数行でも書ける。
+    小見出しより前に書いた内容は、枠の外に残す。
     """
     for section in soup.find_all("section"):
         if "dm-section--full" not in (section.get("class") or []):
             continue
-        for list_tag in section.find_all("ul", recursive=False):
-            items = list_tag.find_all("li", recursive=False)
-            if not items:
-                continue
-            add_class(list_tag, "dm-topics")
-            for item in items:
-                add_class(item, "dm-topic")
+        own = section.find(HEADING_TAGS)
+        headings = [tag for tag in section.find_all(HEADING_TAGS)
+                    if tag is not own and tag.parent is section]
+        if not headings:
+            continue
+
+        holder = soup.new_tag("div")
+        add_class(holder, "dm-topics")
+        headings[0].insert_before(holder)
+        for heading in headings:
+            holder.append(wrap_section(soup, heading, "dm-topic"))

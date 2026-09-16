@@ -403,11 +403,9 @@
 /* 項目ごとに枠を分ける (topic_cards)。 */
 .dm-topics {
   /* 枠は縦に積む。横に並べると、行数の違う枠が凸凹に見えるため。 */
-  list-style: none;
   display: grid;
   gap: 10px;
   margin: 8px 0 0;
-  padding: 0;
 }
 .dm-topic {
   border: 1px solid var(--border);
@@ -416,6 +414,7 @@
   background: var(--background);
   padding: 10px 14px;
 }
+.dm-topic > h3 { margin: 0 0 6px; font-size: 14px; color: var(--text); }
 .dm-topic > :first-child { margin-top: 0; }
 .dm-topic > :last-child { margin-bottom: 0; }
 

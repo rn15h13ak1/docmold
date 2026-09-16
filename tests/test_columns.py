@@ -197,24 +197,52 @@ class TestTopicCards:
         return ('<section class="dm-section dm-section--full"><h2>トピックス</h2>'
                 f'{body}</section>')
 
-    def test_each_item_becomes_a_frame(self):
-        soup = run("topic_cards", self.full_section("<ul><li>A</li><li>B</li></ul>"))
-        assert soup.select_one(".dm-topics") is not None
-        assert [tag.get_text() for tag in soup.select(".dm-topic")] == ["A", "B"]
-
-    def test_multiple_lines_stay_inside_one_frame(self):
+    def test_each_subheading_becomes_a_frame(self):
         soup = run("topic_cards",
-                   self.full_section("<ul><li><p>見出し</p><p>本文</p></li></ul>"))
+                   self.full_section("<h3>A</h3><p>あ</p><h3>B</h3><p>い</p>"))
+        assert soup.select_one(".dm-topics") is not None
         topics = soup.select(".dm-topic")
-        assert len(topics) == 1
-        assert len(topics[0].find_all("p")) == 2
+        assert [tag.find("h3").get_text() for tag in topics] == ["A", "B"]
+        assert topics[0].find("p").get_text() == "あ"
 
-    def test_numbered_list_is_left_alone(self):
-        soup = run("topic_cards", self.full_section("<ol><li>A</li></ol>"))
+    def test_everything_until_the_next_subheading_stays_in_one_frame(self):
+        soup = run("topic_cards",
+                   self.full_section("<h3>A</h3><p>あ</p><ul><li>い</li></ul><h3>B</h3><p>う</p>"))
+        first = soup.select(".dm-topic")[0]
+        assert first.find("p").get_text() == "あ"
+        assert first.find("li").get_text() == "い"
+        assert "う" not in first.get_text()
+
+    def test_content_before_the_first_subheading_stays_outside(self):
+        soup = run("topic_cards", self.full_section("<p>まえがき</p><h3>A</h3><p>あ</p>"))
+        assert "まえがき" not in soup.select_one(".dm-topics").get_text()
+        assert "まえがき" in soup.select_one(".dm-section").get_text()
+
+    def test_section_without_subheadings_is_left_alone(self):
+        soup = run("topic_cards", self.full_section("<ul><li>A</li></ul>"))
         assert soup.select_one(".dm-topic") is None
 
     def test_columns_are_left_alone(self):
         soup = run("topic_cards",
                    '<section class="dm-section dm-section--h2"><h2>前週</h2>'
-                   "<ul><li>A</li></ul></section>")
+                   "<h3>バグ</h3><p>A</p></section>")
         assert soup.select_one(".dm-topic") is None
+
+
+class TestColumnsProfile:
+    def test_sample_is_built_as_topics_and_three_columns(self, config):
+        from converter import convert_text
+
+        result = convert_text(
+            "---\ntype: columns\ntitle: 課題\n---\n\n"
+            "## トピックス\n\n### 連絡\n\n定例を振り替える。\n\n"
+            "## 前週\n\n### バグ対応\n\n残:1 / 完了:0\n\n- AB-1｜処理中｜遅い\n\n"
+            "## 今週\n\n### バグ対応\n\n残:1 / 完了:1\n\n- AB-1｜完了｜遅い\n\n"
+            "## 来週\n\n### バグ対応\n\n残:1 / 完了:0\n\n- AB-1｜処理中｜遅い\n",
+            config,
+        )
+        assert result.profile_name == "columns"
+        assert result.warnings == []
+        assert result.html.count('class="dm-topic"') == 1
+        assert result.html.count('class="dm-group__title"') == 1
+        assert result.html.count('class="dm-column__title"') == 3

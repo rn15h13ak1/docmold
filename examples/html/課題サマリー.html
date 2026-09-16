@@ -429,11 +429,9 @@
 /* 項目ごとに枠を分ける (topic_cards)。 */
 .dm-topics {
   /* 枠は縦に積む。横に並べると、行数の違う枠が凸凹に見えるため。 */
-  list-style: none;
   display: grid;
   gap: 10px;
   margin: 8px 0 0;
-  padding: 0;
 }
 .dm-topic {
   border: 1px solid var(--border);
@@ -442,6 +440,7 @@
   background: var(--background);
   padding: 10px 14px;
 }
+.dm-topic > h3 { margin: 0 0 6px; font-size: 14px; color: var(--text); }
 .dm-topic > :first-child { margin-top: 0; }
 .dm-topic > :last-child { margin-bottom: 0; }
 
@@ -741,22 +740,18 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 
   <main class="dm-content dm-content--columns">
 <section class="dm-section dm-section--h2 dm-section--full" data-heading-id="トピックス"><h2 id="トピックス">トピックス</h2>
-<ul class="dm-topics">
-<li class="dm-topic">
-<p><strong>移行リハーサル</strong></p>
+<div class="dm-topics"><section class="dm-topic"><h3 id="移行リハーサル">移行リハーサル</h3>
 <p>3/18 に実施する。当日は問い合わせ窓口を 1 名増やす。
 手順の最終確認は 3/17 までに終える。</p>
-</li>
-<li class="dm-topic">
-<p><strong>文字化けの調査</strong></p>
+</section><section class="dm-topic"><h3 id="文字化けの調査">文字化けの調査</h3>
 <p>出力周りの点検を今週中に一巡させる。結果は 3/19 の定例で共有する。</p>
-</li>
-<li class="dm-topic">
-<p><strong>定例の振り替え</strong></p>
-<p>3/20 は祝日のため、定例は 3/19 に振り替える。</p>
-</li>
+<ul>
+<li>影響範囲の切り分けは 3/17 まで</li>
+<li>修正方針の確認は 3/19 の定例</li>
 </ul>
-</section><div class="dm-groups"><section class="dm-group"><h2 class="dm-group__title">バグ対応</h2><div class="dm-group__columns"><section class="dm-column"><p class="dm-column__title">前週（3/2 〜 3/8）</p>
+</section><section class="dm-topic"><h3 id="定例の振り替え">定例の振り替え</h3>
+<p>3/20 は祝日のため、定例は 3/19 に振り替える。</p>
+</section></div></section><div class="dm-groups"><section class="dm-group"><h2 class="dm-group__title">バグ対応</h2><div class="dm-group__columns"><section class="dm-column"><p class="dm-column__title">前週（3/2 〜 3/8）</p>
 <ul class="dm-counts"><li class="dm-count"><span class="dm-count__label">残</span><span class="dm-count__value">4</span></li><li class="dm-count"><span class="dm-count__label">新規</span><span class="dm-count__value">2</span></li><li class="dm-count"><span class="dm-count__label">再オープン</span><span class="dm-count__value">0</span></li><li class="dm-count"><span class="dm-count__label">完了</span><span class="dm-count__value">3</span></li><li class="dm-count"><span class="dm-count__label">未完了</span><span class="dm-count__value">3</span></li></ul>
 <ul class="dm-entries">
 <li class="dm-entry"><p class="dm-entry__head"><span class="dm-entry__key">WEB-104</span><span class="dm-entry__meta">期限：3/6</span><span class="dm-badge dm-badge--ok">完了</span></p><p class="dm-entry__body">添付ファイルの削除が一覧に反映されない</p></li>
