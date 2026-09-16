@@ -323,15 +323,13 @@ def _make_group(soup: Any, name: str, columns: Dict[int, List[Any]],
         group.append(title)
 
     order, split = _subgroups(columns, deep_tag)
-    for index, sub_name in enumerate(order or [""]):
-        # 列の名前は、まとまりの中で 1 回だけ出す（表の見出し行と同じ考え方）。
-        group.append(_make_row(soup, sub_name, split.get(sub_name) or {},
-                               column_titles, with_titles=index == 0))
+    for sub_name in order or [""]:
+        group.append(_make_row(soup, sub_name, split.get(sub_name) or {}, column_titles))
     return group
 
 
 def _make_row(soup: Any, name: str, columns: Dict[int, List[Any]],
-              column_titles: List[str], with_titles: bool) -> Any:
+              column_titles: List[str]) -> Any:
     row = soup.new_tag("section")
     add_class(row, "dm-subgroup")
     if name:
@@ -344,8 +342,7 @@ def _make_row(soup: Any, name: str, columns: Dict[int, List[Any]],
     add_class(holder, "dm-group__columns")
     for position, column_title in enumerate(column_titles):
         # 中身が無い列も枠だけ残す。列の位置が節ごとにずれないようにするため。
-        holder.append(_make_column(soup, column_title if with_titles else "",
-                                   columns.get(position) or []))
+        holder.append(_make_column(soup, column_title, columns.get(position) or []))
     row.append(holder)
     return row
 
@@ -353,11 +350,10 @@ def _make_row(soup: Any, name: str, columns: Dict[int, List[Any]],
 def _make_column(soup: Any, title: str, nodes: List[Any]) -> Any:
     column = soup.new_tag("section")
     add_class(column, "dm-column")
-    if title:
-        label = soup.new_tag("p")
-        add_class(label, "dm-column__title")
-        label.string = title
-        column.append(label)
+    label = soup.new_tag("p")
+    add_class(label, "dm-column__title")
+    label.string = title
+    column.append(label)
 
     if not _has_content(nodes):
         add_class(column, "dm-column--empty")

@@ -175,15 +175,15 @@ class TestGroupColumns:
         # 帳票は今週に無いので、枠だけ残す。
         assert "dm-column--empty" in rows[1].select(".dm-column")[1]["class"]
 
-    def test_column_titles_are_shown_once_per_group(self):
+    def test_column_titles_are_shown_in_every_row(self):
         soup = run("group_columns",
                    section("トピックス", "<p>連絡</p>")
                    + section("前週", "<h3>バグ</h3><p>件数</p><h4>画面</h4><p>A</p>")
                    + section("今週", "<h3>バグ</h3><p>件数</p><h4>画面</h4><p>C</p>"))
         rows = soup.select(".dm-subgroup")
-        # 見出しより前の内容が先頭の行になり、そこだけ列の名前を出す。
-        assert [tag.get_text() for tag in rows[0].select(".dm-column__title")] == ["前週", "今週"]
-        assert rows[1].select(".dm-column__title") == []
+        # どの行だけを見ても、どの列がどれか分かるようにする。
+        for row in rows:
+            assert [tag.get_text() for tag in row.select(".dm-column__title")] == ["前週", "今週"]
 
     def test_one_level_only_still_works(self):
         soup = run("group_columns",
