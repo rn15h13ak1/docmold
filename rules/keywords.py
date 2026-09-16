@@ -27,6 +27,9 @@ DEFAULTS: Dict[str, List[str]] = {
     # 週次報告
     "status_column": ["状態", "ステータス", "status", "進行", "対応状況"],
     "progress_column": ["進捗", "進捗率", "達成率", "progress", "完了率"],
+    # 期間の組み立て (period_range)
+    "period": ["期間", "対象期間", "period"],
+    "period_start": ["開始日", "起算日", "start", "start_date"],
     # 索引に出す日付として front matter から拾うキー
     "index_date": ["日時", "日付", "date", "実施日", "作成日", "発生日時", "期間", "報告日"],
     # 状態バッジの色分け

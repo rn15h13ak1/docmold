@@ -12,7 +12,7 @@
   - 同梱プロファイル: `default` / `minutes` / `procedure` / `incident` / `spec` /
     `weekly` / `columns`
   - 同梱 `profiles.yaml` にユーザ `config.yaml` を再帰マージ（差分だけ書けばよい）
-- ルールの検出語（「出席者」「ToDo」「時刻」「状態」など 13 グループ）を `config.yaml` の
+- ルールの検出語（「出席者」「ToDo」「時刻」「状態」など）を `config.yaml` の
   `keywords:` で差し替え可能。表記ゆれへの対応でコードを直さずに済む
 - ルール層のレジストリ（`@rule` デコレータ）。種類の追加は「YAML 数行 + 関数 1 つ」
   - 議事録: `attendee_table` / `todo_checklist` / `decision_highlight`
@@ -20,6 +20,7 @@
   - 障害報告: `severity_badge` / `impact_summary` / `timeline_table`
   - 設計書: `figure_caption` / `table_caption` / `cross_reference`
   - 週次報告: `status_badge` / `progress_bar`
+  - front matter: `period_range`
   - 列並べ: `count_summary` / `entry_card` / `group_columns` / `topic_cards`
 - 完全自己完結 HTML の出力（CSS / JS / 画像 base64 を埋め込み、外部参照ゼロ）
 - 本文の生 HTML を許可リストで絞る（既定 `sanitize: strict`）。`script` / `onerror` /
@@ -57,6 +58,9 @@
   サンプルは `examples/課題サマリー.md`（トピックスの枠に表を置いた例と、
   列に自由記述と、区切りの数ごとのカードを置いた例を含む）
 - 状態バッジの検出語に「再オープン」「期限超過」「期限切れ」を追加
+- front matter に `開始日` を書くと、`期間` を 1 週間分として組み立てる
+  （`period_range`）。`期間` を直接書く書き方もそのまま使える。両方ある場合は
+  `期間` を優先して警告する。日数は `PERIOD_DAYS`、キー名は `keywords` で変えられる
 - 印刷用 `@media print`（手順書は見出しごとに改ページ、設計書は表紙を 1 ページ目に、
   障害報告は DRAFT 透かし）。ページ番号を下端に入れる（表紙には出さない）
 - ディレクトリ再帰の一括変換と索引 HTML の生成（`--index`）。索引は front matter の

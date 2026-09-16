@@ -818,6 +818,7 @@ YAML は「どんな表現があるか」の一覧として読める状態に保
 | `cross_reference` | spec | 本文中の「図 N」「表 N」を図表へのリンク化 |
 | `status_badge` | weekly | 表の「状態」列をバッジ化 |
 | `progress_bar` | weekly | 表の「進捗」列の `80%` を進捗バー化 |
+| `period_range` | weekly / columns | front matter の「開始日」から「期間」を組み立てる |
 | `count_summary` | columns | `残:3 / 新規:1` だけの段落を件数の並びに変換 |
 | `entry_card` | columns | `｜` 区切りのリスト項目を 1 件のカードに変換（字下げした内容はコメント） |
 | `group_columns` | columns | 見出し 2 の 1 つ目を 1 列、2 つ目以降を列にする。列の中は小見出し 2 段でまとめ直す |
@@ -847,6 +848,7 @@ keywords:
 | `severity` / `time_column` / `timeline` | 重要度 / 時刻列 / 時系列の見出し |
 | `status_column` / `progress_column` | 状態列 / 進捗列のヘッダ名 |
 | `status_ok` / `status_warn` / `status_danger` | 状態バッジの色分け |
+| `period` / `period_start` | 期間 / 開始日として front matter から拾うキー |
 
 既定値の全文は [config.example.yaml](config.example.yaml) に載せてあります。
 
@@ -873,6 +875,26 @@ $ docmold.py 定例.md
 
 `incident` では `発生日時` / `復旧日時` / `影響範囲` / `重要度` がサマリカードになります。
 `_` で始まるキーはツールの内部用に予約されています。
+
+### 開始日から期間を作る（`period_range`）
+
+`weekly` / `columns` では、**`開始日` だけ書けば `期間` を組み立てます**（1 週間分）。
+
+```yaml
+開始日: 2026-03-09
+```
+
+```
+期間    2026-03-09 〜 2026-03-15
+```
+
+- `期間` を直接書く書き方もそのまま使えます（範囲を自由に指定したいとき）。
+- 両方書いた場合は `期間` をそのまま使い、警告します。
+- `2026/03/09` のようにスラッシュでも書けます（区切りは出力でもそのまま使います）。
+- 日付として読めない場合は警告し、`期間` は作りません。
+
+日数は `rules/period.py` の `PERIOD_DAYS`（既定 7）で決まります。
+キー名は `keywords` の `period` / `period_start` で差し替えられます。
 
 ---
 

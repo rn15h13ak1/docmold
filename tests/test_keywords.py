@@ -118,3 +118,24 @@ class TestAppliedToConversion:
         convert_text(source, self._config({"status_column": ["進捗状況"]}))
         body = self._body(convert_text(source, self._config()).html)
         assert "dm-badge" not in body
+
+
+class TestConfigExample:
+    def test_every_group_is_listed_in_the_example(self):
+        """config.example.yaml の既定値一覧が、グループの増減に追随しているか。"""
+        from pathlib import Path
+
+        from rules.keywords import DEFAULTS
+
+        text = Path("config.example.yaml").read_text(encoding="utf-8")
+        missing = [name for name in DEFAULTS if f"#   {name}: [" not in text]
+        assert missing == []
+
+    def test_listed_words_match_the_defaults(self):
+        from pathlib import Path
+
+        from rules.keywords import DEFAULTS
+
+        text = Path("config.example.yaml").read_text(encoding="utf-8")
+        for name, words in DEFAULTS.items():
+            assert f"#   {name}: [{', '.join(words)}]" in text
