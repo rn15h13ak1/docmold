@@ -387,13 +387,12 @@
 
 /* 項目ごとに枠を分ける (topic_cards)。 */
 .dm-topics {
+  /* 枠は縦に積む。横に並べると、行数の違う枠が凸凹に見えるため。 */
   list-style: none;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 10px;
   margin: 8px 0 0;
   padding: 0;
-  align-items: start;
 }
 .dm-topic {
   border: 1px solid var(--border);

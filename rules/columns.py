@@ -305,7 +305,7 @@ def topic_cards(soup: Any, meta: Dict[str, Any]) -> None:
     """1 列として残った節の箇条書きを、項目ごとの枠にする。
 
     ``group_columns`` が列に割り付けなかった節（トピックスなど）が対象。
-    項目 1 つが 1 枠になり、枠の中は複数行でも書ける。
+    項目 1 つが 1 枠になり（枠は縦に積む）、枠の中は複数行でも書ける。
     番号付きリスト (``<ol>``) は順序が読めなくなるため触らない。
     """
     for section in soup.find_all("section"):
