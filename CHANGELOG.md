@@ -20,6 +20,9 @@
   - 設計書: `figure_caption` / `table_caption` / `cross_reference`
   - 週次報告: `status_badge` / `progress_bar`
 - 完全自己完結 HTML の出力（CSS / JS / 画像 base64 を埋め込み、外部参照ゼロ）
+- 本文の生 HTML を許可リストで絞る（既定 `sanitize: strict`）。`script` / `onerror` /
+  `javascript:` などを落とし、`<br>` や表の桁揃えは残す。トップレベルの `sanitize` が
+  全体の既定、`profiles.<type>.sanitize` が種類ごとの上書き
 - 文書間リンク（`[設計書](設計書.md)`）を `.html` に向け直す。フラグメントとクエリは温存し、
   外部 URL とページ内アンカーは書き換えない
 - Mermaid の図に対応。```mermaid のコードブロックを描画対象の要素に変換する。

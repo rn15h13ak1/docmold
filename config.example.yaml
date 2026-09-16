@@ -50,6 +50,16 @@
 #     rules: [todo_checklist, status_badge]
 #     meta_header: [対象, レビュー日, 参加者]
 
+# --- 本文の生 HTML の扱い --------------------------------------------------
+# 既定は strict（許可リストに無い要素・属性を落とす）。
+# 全体を素通しに戻す場合:
+# sanitize: false
+#
+# 種類ごとに変える場合（自分で書く設計書だけ HTML を自由に使いたい、など）:
+# profiles:
+#   spec:
+#     sanitize: false
+
 # --- 図（Mermaid）を有効にする ----------------------------------------------
 # profiles:
 #   spec:

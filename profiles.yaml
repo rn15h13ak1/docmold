@@ -16,6 +16,12 @@
 #   mermaid      true で mermaid.min.js を埋め込む（assets/ に同梱が必要）
 #   description  --list-types に出す説明
 
+# 本文に直接書かれた HTML の扱い（全プロファイルの既定）。
+#   strict … 許可リストに無い要素・属性を落とす（script / onerror / javascript: など）
+#   false  … 素通しにする（Markdown 本来の挙動）
+# 種類ごとに profiles.<type>.sanitize で上書きできる。
+sanitize: strict
+
 themes:
   corporate:
     accent: "#00529b"

@@ -35,6 +35,7 @@ from frontmatter import meta_to_text, split_front_matter
 from mermaid_ext import MermaidExtension
 from renderer import render
 from rules import DERIVED_KEY, apply_rules, keywords
+from sanitize import sanitize
 from rules.common import HEADING_TAGS, add_class, heading_level, wrap_section
 
 #: 本文からタイトルを拾えなかったときの表示名。
@@ -114,6 +115,17 @@ def convert_text(text: str, config: Config, *,
     warnings.extend(_check_meta_typos(meta, profile))
 
     soup = BeautifulSoup(html, "html.parser")
+
+    # 生 HTML の絞り込みは、本文だけが対象。ルール層やテンプレートが作る要素は
+    # docmold 自身の生成物なので、この後に組み立てる。
+    if profile.sanitize == "strict":
+        removed = sanitize(soup)
+        if removed:
+            warnings.append(
+                f"本文の HTML を {removed} 箇所ほど除きました"
+                f"（sanitize: strict。素通しにするには sanitize: false）"
+            )
+
     _rewrite_document_links(soup)
     _wrap_sections(soup)
     apply_rules(profile.rules, soup, meta)

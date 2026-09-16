@@ -39,6 +39,31 @@ BASE_EXTENSIONS = [
 #: 既定プロファイル名 (front matter に type が無いときに使う)。
 DEFAULT_PROFILE = "default"
 
+#: 本文の生 HTML の扱い。"strict" = 許可リストで絞る / "none" = 素通し。
+SANITIZE_MODES = ("strict", "none")
+
+#: トップレベルで指定が無いときの既定。安全側に倒す。
+DEFAULT_SANITIZE = "strict"
+
+
+def parse_sanitize(value: Any, where: str) -> str:
+    """``sanitize`` の指定を "strict" / "none" に正規化する。"""
+    if value is None:
+        return DEFAULT_SANITIZE
+    if value is True:
+        return "strict"
+    if value is False:
+        return "none"
+    text = str(value).strip().lower()
+    if text in SANITIZE_MODES:
+        return text
+    if text in ("off", "false", "no"):
+        return "none"
+    raise ConfigError(
+        f"{where}.sanitize: {' / '.join(SANITIZE_MODES)} か true / false で指定してください"
+        f" (実際: {value!r})"
+    )
+
 
 class ConfigError(ValueError):
     """設定ファイルに問題があるときに送出。"""
@@ -186,15 +211,17 @@ class Profile:
     print: PrintSettings = field(default_factory=PrintSettings)
     watermark: Optional[str] = None
     mermaid: MermaidSettings = field(default_factory=MermaidSettings)
+    sanitize: str = DEFAULT_SANITIZE
     description: str = ""
 
     _KNOWN_KEYS = frozenset({
         "template", "theme", "toc", "rules", "extensions",
-        "meta_header", "print", "watermark", "mermaid", "description",
+        "meta_header", "print", "watermark", "mermaid", "sanitize", "description",
     })
 
     @classmethod
-    def parse(cls, name: str, value: Any) -> "Profile":
+    def parse(cls, name: str, value: Any,
+              default_sanitize: str = DEFAULT_SANITIZE) -> "Profile":
         where = f"profiles.{name}"
         if value is None:
             value = {}
@@ -222,6 +249,10 @@ class Profile:
             print=PrintSettings.parse(value.get("print"), where),
             watermark=_optional_str(value.get("watermark")),
             mermaid=MermaidSettings.parse(value.get("mermaid"), where),
+            sanitize=(
+                parse_sanitize(value["sanitize"], where)
+                if "sanitize" in value else default_sanitize
+            ),
             description=str(value.get("description", "")),
         )
 
@@ -310,12 +341,15 @@ def _load_yaml(path: Path) -> Dict[str, Any]:
 
 def build_config(raw: Mapping[str, Any], config_path: Optional[Path] = None) -> Config:
     """マージ済みの dict を検証して ``Config`` にする。"""
-    unknown = set(raw) - {"profiles", "themes", "keywords"}
+    unknown = set(raw) - {"profiles", "themes", "keywords", "sanitize"}
     if unknown:
         raise ConfigError(
             f"未知のトップレベルキー: {sorted(unknown)}"
-            f" (使えるキー: keywords, profiles, themes)"
+            f" (使えるキー: keywords, profiles, sanitize, themes)"
         )
+
+    # トップレベルの sanitize は全プロファイルの既定。種類ごとの指定が優先する。
+    default_sanitize = parse_sanitize(raw.get("sanitize"), "")
 
     themes_raw = raw.get("themes") or {}
     if not isinstance(themes_raw, Mapping):
@@ -353,7 +387,10 @@ def build_config(raw: Mapping[str, Any], config_path: Optional[Path] = None) -> 
     profiles_raw = raw.get("profiles") or {}
     if not isinstance(profiles_raw, Mapping):
         raise ConfigError("profiles: マッピングで指定してください")
-    profiles = {str(name): Profile.parse(str(name), value) for name, value in profiles_raw.items()}
+    profiles = {
+        str(name): Profile.parse(str(name), value, default_sanitize)
+        for name, value in profiles_raw.items()
+    }
 
     if DEFAULT_PROFILE not in profiles:
         raise ConfigError(f"profiles に '{DEFAULT_PROFILE}' が必要です (type 未指定時に使います)")
