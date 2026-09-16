@@ -334,8 +334,15 @@
 /* 小見出しでまとめ直した並び (group_columns)。
    ひとまとまりを全幅に広げ、その中で節を列にする。 */
 .dm-content--columns > .dm-groups { grid-column: 1 / -1; }
-/* 小見出しを持たない節（トピックスなど）は列に割り付けず、横幅いっぱいに置く。 */
-.dm-content--columns > .dm-section--full { grid-column: 1 / -1; }
+/* 小見出しを持たない節（トピックスなど）は列に割り付けず、横幅いっぱいに置く。
+   中身が枠を持つため、節そのものはカードにしない。 */
+.dm-content--columns > .dm-section--full {
+  grid-column: 1 / -1;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  overflow: visible;
+}
 .dm-group { margin: 0 0 22px; }
 .dm-group__title {
   margin: 0 0 8px;
