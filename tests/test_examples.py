@@ -48,18 +48,39 @@ class TestGeneratedSamples:
             assert f'href="{source.stem}.html"' in index, source.name
 
     def test_samples_are_self_contained(self):
-        """配布物と同じく、外部を参照しないこと。
+        """外部を参照しないこと。例外は Mermaid の読み込みだけ。
 
-        本文やスクリプトのコメントに URL が出てくることはあるため、
-        実際に読み込みが走る書き方（src / href / url() / @import）だけを見る。
+        本文やスクリプトのコメントに URL が出てくることはあるため、実際に読み込みが
+        走る書き方（src / href / url() / @import）だけを見る。図を使う種類は
+        mermaid: cdn を指定しているため、その 1 本だけは通す。
         """
-        patterns = re.compile(
-            r"""(?:src|href)\s*=\s*["']\s*(?:https?:)?//|url\(\s*["']?\s*(?:https?:)?//|@import""",
+        from config import DEFAULT_MERMAID_URL
+
+        reference = re.compile(
+            r"""(?:src|href)\s*=\s*["']\s*(?:https?:)?//[^"']*|"""
+            r"""url\(\s*["']?\s*(?:https?:)?//[^)"']*|@import""",
             re.IGNORECASE,
         )
         for source in build_examples.source_files():
             html = build_examples.destination(source).read_text(encoding="utf-8")
-            assert not patterns.search(html), source.name
+            for found in reference.findall(html):
+                assert DEFAULT_MERMAID_URL in found, f"{source.name}: {found}"
+
+    def test_only_the_diagram_sample_reaches_outside(self):
+        """外部参照を持つのは、図を使う種類だけであること。"""
+        from config import DEFAULT_MERMAID_URL
+
+        outside = [
+            source.name for source in build_examples.source_files()
+            if DEFAULT_MERMAID_URL in build_examples.destination(source).read_text(encoding="utf-8")
+        ]
+        assert outside == ["設計書.md"]
+
+    def test_diagram_sample_has_a_rendered_target(self):
+        """読み込むだけでなく、描画対象の要素があること。"""
+        html = build_examples.destination(
+            build_examples.SOURCE_DIR / "設計書.md").read_text(encoding="utf-8")
+        assert html.count('<pre class="mermaid">') == 2
 
     def test_banner_marks_them_as_generated(self):
         for source in build_examples.source_files():

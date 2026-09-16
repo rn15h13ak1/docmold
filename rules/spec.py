@@ -16,28 +16,29 @@ _FIGURE_CAPTION_RE = re.compile(r"^\s*図\s*\d*\s*[:：]\s*(?P<text>.+)$")
 
 @rule("figure_caption")
 def figure_caption(soup: Any, meta: Dict[str, Any]) -> None:
-    """画像を ``<figure>`` にして「図 N: 説明」を自動採番する。"""
+    """画像と Mermaid の図を ``<figure>`` にして「図 N: 説明」を自動採番する。
+
+    説明は画像なら ``alt``、Mermaid なら直前の「図: …」の段落から取る
+    （表のキャプションと同じ書き方に揃えている）。
+    """
     figures: List[Dict[str, str]] = []
-    for image in soup.find_all("img"):
-        if image.find_parent("figure") is not None:
+
+    for node in soup.find_all(["img", "pre"]):
+        if node.name == "pre" and not _is_diagram(node):
             continue
+        if node.find_parent("figure") is not None:
+            continue
+
         number = len(figures) + 1
         anchor = f"fig-{number}"
-
         figure = soup.new_tag("figure")
         add_class(figure, "dm-figure")
         figure["id"] = anchor
 
-        # 画像だけの段落は figure に置き換える（段落の入れ子を残さない）。
-        paragraph = image.find_parent("p")
-        host = paragraph if paragraph is not None and _only_child(paragraph, image) else image
-        host.insert_before(figure)
-        figure.append(image.extract())
-        if host is not image:
-            caption_text = _caption_from(host, _FIGURE_CAPTION_RE) or image.get("alt", "")
-            host.decompose()
+        if node.name == "img":
+            caption_text = _place_image(figure, node)
         else:
-            caption_text = image.get("alt", "")
+            caption_text = _place_diagram(figure, node)
 
         caption = soup.new_tag("figcaption")
         add_class(caption, "dm-figure__caption")
@@ -47,6 +48,44 @@ def figure_caption(soup: Any, meta: Dict[str, Any]) -> None:
 
     if figures:
         derived(meta)["figures"] = figures
+
+
+def _is_diagram(tag: Any) -> bool:
+    """Mermaid の図か（``mermaid_ext`` が付けたクラスで見分ける）。"""
+    return "mermaid" in (tag.get("class") or [])
+
+
+def _place_image(figure: Any, image: Any) -> str:
+    """画像を figure の中に移し、説明文を返す。"""
+    # 画像だけの段落は figure に置き換える（段落の入れ子を残さない）。
+    paragraph = image.find_parent("p")
+    host = paragraph if paragraph is not None and _only_child(paragraph, image) else image
+    host.insert_before(figure)
+    figure.append(image.extract())
+
+    if host is not image:
+        caption_text = _caption_from(host, _FIGURE_CAPTION_RE) or image.get("alt", "")
+        host.decompose()
+        return caption_text
+    return image.get("alt", "")
+
+
+def _place_diagram(figure: Any, diagram: Any) -> str:
+    """Mermaid の図を figure の中に移し、説明文を返す。
+
+    説明は直前の「図: …」の段落から取り、その段落は取り除く。
+    """
+    caption_text = ""
+    previous = _previous_element(diagram)
+    if previous is not None and previous.name == "p":
+        found = _caption_from(previous, _FIGURE_CAPTION_RE)
+        if found:
+            caption_text = found
+            previous.decompose()
+
+    diagram.insert_before(figure)
+    figure.append(diagram.extract())
+    return caption_text
 
 
 @rule("table_caption")

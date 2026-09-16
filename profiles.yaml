@@ -96,6 +96,9 @@ profiles:
       numbering: true
     rules: [figure_caption, table_caption, cross_reference]
     meta_header: [版数, 作成日, 作成者, 承認者]
+    # 図を CDN から読み込む。この種類の HTML だけは外部参照を持つ。
+    # 閉域環境で開くなら mermaid: true（同梱を埋め込む）か false に変える。
+    mermaid: cdn
     print:
       cover_page: true
       page_break_per_h1: true

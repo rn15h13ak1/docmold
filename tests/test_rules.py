@@ -232,3 +232,48 @@ class TestWeekly:
         html = "<table><tr><th>進捗</th></tr><tr><td>未定</td></tr></table>"
         soup, _ = run("progress_bar", html)
         assert soup.find("span", class_="dm-progress") is None
+
+
+class TestDiagramNumbering:
+    """Mermaid の図も表と同じように採番する（設計書で図表番号を使うため）。"""
+
+    def _diagram(self, caption: str = "") -> str:
+        head = f"<p>{caption}</p>" if caption else ""
+        return f'{head}<pre class="mermaid">graph TD\n  A --&gt; B</pre>'
+
+    def test_diagram_is_numbered(self):
+        soup, meta = run("figure_caption", self._diagram("図: 全体構成"))
+        assert soup.find("figcaption").get_text() == "図 1: 全体構成"
+        assert soup.find("figure")["id"] == "fig-1"
+
+    def test_definition_is_kept(self):
+        soup, _ = run("figure_caption", self._diagram("図: 全体構成"))
+        assert soup.find("pre", class_="mermaid") is not None
+        assert "graph TD" in soup.get_text()
+
+    def test_caption_paragraph_is_consumed(self):
+        soup, _ = run("figure_caption", self._diagram("図: 全体構成"))
+        assert soup.find("p") is None
+
+    def test_diagram_without_caption(self):
+        soup, _ = run("figure_caption", self._diagram())
+        assert soup.find("figcaption").get_text() == "図 1"
+
+    def test_unrelated_paragraph_is_kept(self):
+        soup, _ = run("figure_caption", "<p>本文</p>" + self._diagram())
+        assert soup.find("p").get_text() == "本文"
+
+    def test_images_and_diagrams_share_the_numbering(self):
+        html = '<p><img src="a.png" alt="配置図"></p>' + self._diagram("図: 流れ")
+        soup, meta = run("figure_caption", html)
+        captions = [tag.get_text() for tag in soup.find_all("figcaption")]
+        assert captions == ["図 1: 配置図", "図 2: 流れ"]
+
+    def test_plain_code_block_is_not_numbered(self):
+        soup, _ = run("figure_caption", "<pre><code>ls -l</code></pre>")
+        assert soup.find("figure") is None
+
+    def test_cross_reference_links_to_the_diagram(self):
+        soup = soup_of("<p>構成を図 1 に示す。</p>" + self._diagram("図: 全体構成"))
+        apply_rules(["figure_caption", "cross_reference"], soup, {})
+        assert soup.find("a", class_="dm-xref")["href"] == "#fig-1"

@@ -640,6 +640,13 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 
 <nav class="dm-figure-index" aria-label="図表一覧">
   <div class="dm-figure-index__group">
+    <p class="dm-figure-index__title">図一覧</p>
+    <ul>
+      <li><a href="#fig-1">図 1: 全体構成</a></li>
+      <li><a href="#fig-2">図 2: 切替当日の流れ</a></li>
+    </ul>
+  </div>
+  <div class="dm-figure-index__group">
     <p class="dm-figure-index__title">表一覧</p>
     <ul>
       <li><a href="#tbl-1">表 1: 機器一覧</a></li>
@@ -684,7 +691,15 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <p>サンプルシステムを構成するアプリケーションサーバおよび DB サーバを対象とする。</p>
 </section><section class="dm-section dm-section--h1" data-heading-id="システム構成"><h1 id="システム構成"><span class="dm-heading__number">2</span>システム構成</h1>
 <h2 id="全体構成"><span class="dm-heading__number">2.1</span>全体構成</h2>
-<p>構成を以下に示す。詳細な機器仕様は<a class="dm-xref" href="#tbl-1">表 1</a> を参照。</p>
+<p>システム全体の構成を<a class="dm-xref" href="#fig-1">図 1</a> に示す。詳細な機器仕様は<a class="dm-xref" href="#tbl-1">表 1</a> を参照。</p>
+
+<figure class="dm-figure" id="fig-1"><pre class="mermaid">graph TD
+  U[利用者] --&gt; LB[ロードバランサ]
+  LB --&gt; AP1[AP サーバ 1-4]
+  AP1 --&gt; DB[(DB サーバ)]
+  AP1 --&gt; ST[ファイル領域]
+  M[監視サーバ] -.監視.-&gt; AP1
+  M -.監視.-&gt; DB</pre><figcaption class="dm-figure__caption">図 1: 全体構成</figcaption></figure>
 
 <table class="dm-table" id="tbl-1"><caption class="dm-table__caption">表 1: 機器一覧</caption>
 <thead>
@@ -732,7 +747,15 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </tbody>
 </table>
 </section><section class="dm-section dm-section--h1" data-heading-id="移行方式"><h1 id="移行方式"><span class="dm-heading__number">3</span>移行方式</h1>
-<p><a class="dm-xref" href="#tbl-1">表 1</a> の AP サーバから順に切り替える。</p></section>
+<p><a class="dm-xref" href="#tbl-1">表 1</a> の AP サーバから順に切り替える。切替当日の流れを<a class="dm-xref" href="#fig-2">図 2</a> に示す。</p>
+
+<figure class="dm-figure" id="fig-2"><pre class="mermaid">flowchart LR
+  A[事前確認] --&gt; B[サービス停止]
+  B --&gt; C[切替]
+  C --&gt; D{疎通確認}
+  D --&gt;|正常| E[完了通知]
+  D --&gt;|異常| F[切戻し]
+  F --&gt; B</pre><figcaption class="dm-figure__caption">図 2: 切替当日の流れ</figcaption></figure></section>
   </main>
 
   <footer class="dm-footer">
@@ -740,5 +763,11 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
   </footer>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script>
+if (window.mermaid) {
+  window.mermaid.initialize({ startOnLoad: true, securityLevel: 'strict' });
+}
+</script>
 </body>
 </html>
