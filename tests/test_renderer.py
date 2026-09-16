@@ -115,3 +115,17 @@ class TestPrintPageNumbers:
     def test_rule_is_inside_a_print_block(self, config):
         css = build_css(config, config.profile("spec"))
         assert css.index("@media print") < css.index("@bottom-center")
+
+
+class TestFooter:
+    def test_type_name_is_shown_by_default(self, config):
+        from converter import convert_text
+
+        result = convert_text("---\ntype: weekly\ntitle: 週報\n---\n\n## 進捗\n\n本文\n", config)
+        assert "dm-footer__type" in result.html
+
+    def test_columns_has_no_footer(self, config):
+        from converter import convert_text
+
+        result = convert_text("---\ntype: columns\ntitle: 課題\n---\n\n## メモ\n\n本文\n", config)
+        assert "<footer" not in result.html

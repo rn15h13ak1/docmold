@@ -55,9 +55,11 @@
 {{ content | safe }}
   </main>
 
+  {% block footer %}
   <footer class="dm-footer">
     <span class="dm-footer__type">{{ profile.description or profile.name }}</span>
   </footer>
+  {% endblock %}
 </div>
 
 {% if mermaid.enabled %}
