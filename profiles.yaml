@@ -118,6 +118,7 @@ profiles:
     toc: false
     # group_columns を外すと、節がそのまま列になる（小見出しでまとめ直さない）。
     # topic_cards は group_columns が 1 列として残した節に効くため、後ろに置く。
-    rules: [period_range, count_summary, entry_card, status_badge, progress_bar,
-            group_columns, topic_cards]
+    # column_periods は見出しの文字列を使うため、group_columns より前に置く。
+    rules: [period_range, column_periods, count_summary, entry_card, status_badge,
+            progress_bar, group_columns, topic_cards]
     meta_header: [期間, 報告者]
