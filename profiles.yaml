@@ -117,5 +117,7 @@ profiles:
     theme: corporate
     toc: false
     # group_columns を外すと、節がそのまま列になる（小見出しでまとめ直さない）。
-    rules: [count_summary, entry_card, status_badge, progress_bar, group_columns]
+    # topic_cards は group_columns が 1 列として残した節に効くため、後ろに置く。
+    rules: [count_summary, entry_card, status_badge, progress_bar, group_columns,
+            topic_cards]
     meta_header: [期間, 報告者]

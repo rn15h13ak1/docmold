@@ -411,6 +411,26 @@
 .dm-count__label { color: var(--muted); }
 .dm-count__value { font-family: var(--mono); font-weight: bold; color: var(--accent); }
 
+/* 項目ごとに枠を分ける (topic_cards)。 */
+.dm-topics {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 10px;
+  margin: 8px 0 0;
+  padding: 0;
+  align-items: start;
+}
+.dm-topic {
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--accent);
+  border-radius: 3px;
+  background: var(--background);
+  padding: 10px 14px;
+}
+.dm-topic > :first-child { margin-top: 0; }
+.dm-topic > :last-child { margin-bottom: 0; }
+
 /* 1 行 1 件のカード (entry_card)。 */
 .dm-entries { list-style: none; margin: 0 0 10px; padding: 0; }
 .dm-entry {
@@ -707,10 +727,20 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 
   <main class="dm-content dm-content--columns">
 <section class="dm-section dm-section--h2 dm-section--full" data-heading-id="トピックス"><h2 id="トピックス">トピックス</h2>
-<ul>
-<li>3/18 に移行リハーサルを実施する。当日は問い合わせ窓口を 1 名増やす。</li>
-<li>文字化けの報告が続いているため、出力周りの点検を今週中に一巡させる。</li>
-<li>3/20 は祝日のため、定例は 3/19 に振り替える。</li>
+<ul class="dm-topics">
+<li class="dm-topic">
+<p><strong>移行リハーサル</strong></p>
+<p>3/18 に実施する。当日は問い合わせ窓口を 1 名増やす。
+手順の最終確認は 3/17 までに終える。</p>
+</li>
+<li class="dm-topic">
+<p><strong>文字化けの調査</strong></p>
+<p>出力周りの点検を今週中に一巡させる。結果は 3/19 の定例で共有する。</p>
+</li>
+<li class="dm-topic">
+<p><strong>定例の振り替え</strong></p>
+<p>3/20 は祝日のため、定例は 3/19 に振り替える。</p>
+</li>
 </ul>
 </section><div class="dm-groups"><section class="dm-group"><h2 class="dm-group__title">バグ対応</h2><div class="dm-group__columns"><section class="dm-column"><p class="dm-column__title">前週（3/2 〜 3/8）</p>
 <ul class="dm-counts"><li class="dm-count"><span class="dm-count__label">残</span><span class="dm-count__value">4</span></li><li class="dm-count"><span class="dm-count__label">新規</span><span class="dm-count__value">2</span></li><li class="dm-count"><span class="dm-count__label">再オープン</span><span class="dm-count__value">0</span></li><li class="dm-count"><span class="dm-count__label">完了</span><span class="dm-count__value">3</span></li><li class="dm-count"><span class="dm-count__label">未完了</span><span class="dm-count__value">3</span></li></ul>

@@ -20,7 +20,7 @@
   - 障害報告: `severity_badge` / `impact_summary` / `timeline_table`
   - 設計書: `figure_caption` / `table_caption` / `cross_reference`
   - 週次報告: `status_badge` / `progress_bar`
-  - 列並べ: `count_summary` / `entry_card` / `group_columns`
+  - 列並べ: `count_summary` / `entry_card` / `group_columns` / `topic_cards`
 - 完全自己完結 HTML の出力（CSS / JS / 画像 base64 を埋め込み、外部参照ゼロ）
 - 本文の生 HTML を許可リストで絞る（既定 `sanitize: strict`）。`script` / `onerror` /
   `javascript:` などを落とし、`<br>` や表の桁揃えは残す。トップレベルの `sanitize` が
@@ -39,6 +39,7 @@
   しか無い場合も、列の位置がずれないよう枠だけ残す。ルールを外せば、
   節がそのまま列になる並びにも戻せる。小見出しを持たない節は組み替えず、
   横幅いっぱいの 1 列として残す（トピックスや前書きを列の上下に置ける）。
+  その節の箇条書きは `topic_cards` が項目ごとの枠に分ける（枠の中は複数行可）。
   列が狭いぶん、表ではなく「1 行 1 件」で書けるようルールを 2 つ用意した。
   `count_summary` は `残:3 / 新規:1` だけの段落を件数の並びに、
   `entry_card` は `見出し｜属性｜説明` のリスト項目をカードにする。

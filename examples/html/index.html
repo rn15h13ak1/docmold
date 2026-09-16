@@ -410,6 +410,26 @@
 .dm-count__label { color: var(--muted); }
 .dm-count__value { font-family: var(--mono); font-weight: bold; color: var(--accent); }
 
+/* 項目ごとに枠を分ける (topic_cards)。 */
+.dm-topics {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 10px;
+  margin: 8px 0 0;
+  padding: 0;
+  align-items: start;
+}
+.dm-topic {
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--accent);
+  border-radius: 3px;
+  background: var(--background);
+  padding: 10px 14px;
+}
+.dm-topic > :first-child { margin-top: 0; }
+.dm-topic > :last-child { margin-bottom: 0; }
+
 /* 1 行 1 件のカード (entry_card)。 */
 .dm-entries { list-style: none; margin: 0 0 10px; padding: 0; }
 .dm-entry {

@@ -298,3 +298,23 @@ def _make_column(soup: Any, title: str, nodes: List[Any]) -> Any:
     for node in nodes:
         column.append(node)
     return column
+
+
+@rule("topic_cards")
+def topic_cards(soup: Any, meta: Dict[str, Any]) -> None:
+    """1 列として残った節の箇条書きを、項目ごとの枠にする。
+
+    ``group_columns`` が列に割り付けなかった節（トピックスなど）が対象。
+    項目 1 つが 1 枠になり、枠の中は複数行でも書ける。
+    番号付きリスト (``<ol>``) は順序が読めなくなるため触らない。
+    """
+    for section in soup.find_all("section"):
+        if "dm-section--full" not in (section.get("class") or []):
+            continue
+        for list_tag in section.find_all("ul", recursive=False):
+            items = list_tag.find_all("li", recursive=False)
+            if not items:
+                continue
+            add_class(list_tag, "dm-topics")
+            for item in items:
+                add_class(item, "dm-topic")
