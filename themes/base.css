@@ -369,6 +369,7 @@
   padding: 8px 12px 10px;
   overflow-x: auto;
 }
+.dm-column > :last-child { margin-bottom: 0; }
 /* 列の見出しは、まとまりの帯より一段弱い帯にする（入れ子が読み取れるように）。 */
 .dm-column__title {
   margin: -8px -12px 8px;
@@ -382,9 +383,21 @@
 }
 .dm-column > :last-child { margin-bottom: 0; }
 
-/* 列や枠の中のサブ項目（見出し 4）。帯にすると見出しが多重に見えるため、
-   細い縦線と色だけで一段下だと示す。 */
-.dm-content--columns .dm-column h4,
+/* サブ項目 (見出し 4) のまとまり。まとまりの帯より一段弱い帯にする。 */
+.dm-subgroup { margin: 0 0 10px; }
+.dm-subgroup:last-child { margin-bottom: 0; }
+.dm-content--columns .dm-subgroup__title {
+  margin: 0 0 6px;
+  padding: 3px 10px;
+  font-size: 13px;
+  color: var(--accent);
+  background: var(--accent-weak);
+  border: 0;
+  border-left: 4px solid var(--accent);
+  border-radius: 0 3px 3px 0;
+}
+
+/* トピックスの枠の中のサブ項目。列と違って組み替えないため、細い縦線で示す。 */
 .dm-content--columns .dm-topic h4 {
   margin: 14px 0 5px;
   padding: 0 0 0 8px;
@@ -393,7 +406,6 @@
   border: 0;
   border-left: 3px solid var(--accent-weak);
 }
-.dm-content--columns .dm-column h4:first-of-type { margin-top: 8px; }
 .dm-column--empty { background: transparent; border-style: dashed; }
 .dm-column__empty { margin: 0; color: var(--muted); }
 

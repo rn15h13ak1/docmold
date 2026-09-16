@@ -177,6 +177,8 @@ def group_columns(soup: Any, meta: Dict[str, Any]) -> None:
     トピックスは横幅いっぱいの 1 列、残りは列として扱う。
     列の中に小見出し (``### バグ対応``) があれば、小見出しごとにまとめ直し、
     「バグ対応の中に前週・今週・来週の列」という並びにする。
+    さらに深い小見出し (``#### 画面まわり``) があれば、その中でもう一段
+    まとめ直す（サブ項目ごとに列を並べる）。
 
     位置で決めるため、見出しの文字列は見ない。``## `` が
     ``EXPECTED_SECTIONS`` 個でないときは警告する（処理は続ける）。
@@ -193,7 +195,7 @@ def group_columns(soup: Any, meta: Dict[str, Any]) -> None:
     add_class(sections[0], "dm-section--full")
 
     targets = sections[1:]
-    sub_tag = _sub_heading_tag(targets)
+    sub_tag, deep_tag = _heading_tags(targets)
     if sub_tag is None or len(targets) < 2:
         # 組み替えるものが無い。残りの節はそのまま列になる。
         return
@@ -219,22 +221,30 @@ def group_columns(soup: Any, meta: Dict[str, Any]) -> None:
     holder = soup.new_tag("div")
     add_class(holder, "dm-groups")
     for name in order:
-        holder.append(_make_group(soup, name, grouped[name], column_titles))
+        holder.append(_make_group(soup, name, grouped[name], column_titles, deep_tag))
 
     targets[0].insert_before(holder)
     for section in targets:
         section.decompose()
 
 
-def _sub_heading_tag(sections: List[Any]) -> Any:
-    """節の中で使われている、いちばん浅い見出しのタグ名を返す。無ければ None。"""
+def _heading_tags(sections: List[Any]) -> tuple:
+    """節の中で使う見出しを ``(まとまり, サブ項目)`` のタグ名で返す。
+
+    いちばん浅い見出しがまとまりの区切り、その次に浅いものがサブ項目の区切り。
+    どちらも無ければ None。
+    """
     levels = set()
     for section in sections:
         own = section.find(HEADING_TAGS)
         for heading in section.find_all(HEADING_TAGS):
             if heading is not own:
                 levels.add(heading_level(heading))
-    return f"h{min(levels)}" if levels else None
+    ordered = sorted(levels)
+    return (
+        f"h{ordered[0]}" if ordered else None,
+        f"h{ordered[1]}" if len(ordered) > 1 else None,
+    )
 
 
 def _section_title(section: Any) -> str:
@@ -266,8 +276,44 @@ def _has_content(nodes: List[Any]) -> bool:
                for node in nodes)
 
 
+def _split_nodes(nodes: List[Any], tag: str) -> List[tuple]:
+    """ノードの並びを ``tag`` の見出しで区切る。``_split_by_subheading`` の中身版。"""
+    parts: List[tuple] = [(None, [])]
+    for node in nodes:
+        if getattr(node, "name", None) == tag:
+            parts.append((node, []))
+        else:
+            parts[-1][1].append(node)
+    return parts
+
+
+def _subgroups(columns: Dict[int, List[Any]], deep_tag: Any) -> tuple:
+    """まとまりの中身をサブ項目に分け、``(順序, サブ項目名 → {列の位置: ノード})`` を返す。
+
+    サブ項目の見出しより前にある内容 (件数の並びなど) は、名前なしのサブ項目として
+    先頭に置く。
+    """
+    order: List[str] = []
+    split: Dict[str, Dict[int, List[Any]]] = {}
+    for position, nodes in columns.items():
+        parts = _split_nodes(nodes, deep_tag) if deep_tag else [(None, nodes)]
+        for heading, part in parts:
+            name = heading.get_text(strip=True) if heading is not None else ""
+            if not name and not _has_content(part):
+                continue
+            if name not in split:
+                split[name] = {}
+                order.append(name)
+            split[name][position] = part
+    if "" in order:
+        # 名前なし (見出しより前の内容) は、どの列で出てきても先頭に置く。
+        order.remove("")
+        order.insert(0, "")
+    return order, split
+
+
 def _make_group(soup: Any, name: str, columns: Dict[int, List[Any]],
-                column_titles: List[str]) -> Any:
+                column_titles: List[str], deep_tag: Any) -> Any:
     group = soup.new_tag("section")
     add_class(group, "dm-group")
     if name:
@@ -276,22 +322,42 @@ def _make_group(soup: Any, name: str, columns: Dict[int, List[Any]],
         title.string = name
         group.append(title)
 
+    order, split = _subgroups(columns, deep_tag)
+    for index, sub_name in enumerate(order or [""]):
+        # 列の名前は、まとまりの中で 1 回だけ出す（表の見出し行と同じ考え方）。
+        group.append(_make_row(soup, sub_name, split.get(sub_name) or {},
+                               column_titles, with_titles=index == 0))
+    return group
+
+
+def _make_row(soup: Any, name: str, columns: Dict[int, List[Any]],
+              column_titles: List[str], with_titles: bool) -> Any:
+    row = soup.new_tag("section")
+    add_class(row, "dm-subgroup")
+    if name:
+        title = soup.new_tag("h3")
+        add_class(title, "dm-subgroup__title")
+        title.string = name
+        row.append(title)
+
     holder = soup.new_tag("div")
     add_class(holder, "dm-group__columns")
     for position, column_title in enumerate(column_titles):
         # 中身が無い列も枠だけ残す。列の位置が節ごとにずれないようにするため。
-        holder.append(_make_column(soup, column_title, columns.get(position) or []))
-    group.append(holder)
-    return group
+        holder.append(_make_column(soup, column_title if with_titles else "",
+                                   columns.get(position) or []))
+    row.append(holder)
+    return row
 
 
 def _make_column(soup: Any, title: str, nodes: List[Any]) -> Any:
     column = soup.new_tag("section")
     add_class(column, "dm-column")
-    label = soup.new_tag("p")
-    add_class(label, "dm-column__title")
-    label.string = title
-    column.append(label)
+    if title:
+        label = soup.new_tag("p")
+        add_class(label, "dm-column__title")
+        label.string = title
+        column.append(label)
 
     if not _has_content(nodes):
         add_class(column, "dm-column--empty")

@@ -160,16 +160,38 @@ class TestGroupColumns:
         assert soup.select_one(".dm-group") is None
         assert len(soup.select(".dm-section")) == 3
 
-    def test_deeper_subheadings_stay_inside_the_column(self):
+    def test_deeper_subheadings_become_rows_of_columns(self):
         soup = run("group_columns",
                    section("トピックス", "<p>連絡</p>")
                    + section("前週", "<h3>バグ</h3><h4>画面</h4><p>A</p><h4>帳票</h4><p>B</p>")
                    + section("今週", "<h3>バグ</h3><h4>画面</h4><p>C</p>"))
-        # 区切りに使うのはいちばん浅い小見出しだけ。見出し 4 は列の中身として残す。
         assert [tag.get_text() for tag in soup.select(".dm-group__title")] == ["バグ"]
-        column = soup.select(".dm-column")[0]
-        assert [tag.get_text() for tag in column.find_all("h4")] == ["画面", "帳票"]
-        assert [tag.get_text() for tag in column.find_all("p")[1:]] == ["A", "B"]
+        rows = soup.select(".dm-subgroup")
+        assert [tag.get_text() for tag in soup.select(".dm-subgroup__title")] == ["画面", "帳票"]
+        # サブ項目ごとに、列の数だけ枠が並ぶ。
+        assert [len(row.select(".dm-column")) for row in rows] == [2, 2]
+        assert [tag.get_text() for tag in rows[0].select(".dm-column p:not(.dm-column__title)")] \
+            == ["A", "C"]
+        # 帳票は今週に無いので、枠だけ残す。
+        assert "dm-column--empty" in rows[1].select(".dm-column")[1]["class"]
+
+    def test_column_titles_are_shown_once_per_group(self):
+        soup = run("group_columns",
+                   section("トピックス", "<p>連絡</p>")
+                   + section("前週", "<h3>バグ</h3><p>件数</p><h4>画面</h4><p>A</p>")
+                   + section("今週", "<h3>バグ</h3><p>件数</p><h4>画面</h4><p>C</p>"))
+        rows = soup.select(".dm-subgroup")
+        # 見出しより前の内容が先頭の行になり、そこだけ列の名前を出す。
+        assert [tag.get_text() for tag in rows[0].select(".dm-column__title")] == ["前週", "今週"]
+        assert rows[1].select(".dm-column__title") == []
+
+    def test_one_level_only_still_works(self):
+        soup = run("group_columns",
+                   section("トピックス", "<p>連絡</p>")
+                   + section("前週", "<h3>バグ</h3><p>A</p>")
+                   + section("今週", "<h3>バグ</h3><p>B</p>"))
+        assert soup.select(".dm-subgroup__title") == []
+        assert [tag.get_text() for tag in soup.select(".dm-column__title")] == ["前週", "今週"]
 
     def test_topics_only_is_left_alone(self):
         soup = run("group_columns", section("トピックス", "<p>連絡</p>"))
