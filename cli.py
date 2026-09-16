@@ -156,7 +156,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         return EXIT_FAILED
 
     single_file = len(sources) == 1 and Path(args.inputs[0]).is_file()
-    output_dir, output_file = _resolve_output(args.output, single_file, reporter)
+    output_dir, output_file = _resolve_output(
+        args.output, single_file, reporter, reserve=not args.dry_run)
 
     if not args.quiet:
         sys.stderr.write(f"設定ファイル: {config.config_path}\n")
@@ -196,6 +197,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         sys.stderr.write(summary + "\n")
         if entries and not args.dry_run:
             sys.stderr.write(f"出力先: {output_file or output_dir}\n")
+
+    if output_file is None and args.output is None and not args.dry_run:
+        _remove_if_empty(output_dir)
 
     if args.strict and reporter.count:
         sys.stderr.write(
@@ -272,6 +276,7 @@ def _collect_sources(inputs: Sequence[str]) -> Tuple[List[Tuple[Path, Path]], Li
 
 def _resolve_output(output: Optional[str], single_file: bool,
                     reporter: Optional["_Reporter"] = None,
+                    reserve: bool = False,
                     timestamp: Optional[str] = None) -> Tuple[Path, Optional[Path]]:
     """``(出力ディレクトリ, 単一出力ファイル or None)`` を返す。
 
@@ -283,7 +288,10 @@ def _resolve_output(output: Optional[str], single_file: bool,
     バッチやタスクスケジューラから決まった場所に出す用途を壊さないため。
     """
     if output is None:
-        return DEFAULT_OUTPUT_DIR / (timestamp or timestamp_slug()), None
+        stamp = timestamp or timestamp_slug()
+        if not reserve:
+            return DEFAULT_OUTPUT_DIR / stamp, None
+        return _reserve_run_dir(DEFAULT_OUTPUT_DIR, stamp), None
 
     path = Path(output).expanduser()
     # 単一ファイル入力で、拡張子付きの出力が指定されたときだけファイル扱いにする。
@@ -304,6 +312,34 @@ def _resolve_output(output: Optional[str], single_file: bool,
 def timestamp_slug(now: Optional[datetime.datetime] = None) -> str:
     """出力フォルダ名向けのタイムスタンプ (YYYYMMDD-HHMMSS)。"""
     return (now or datetime.datetime.now()).strftime("%Y%m%d-%H%M%S")
+
+
+#: 同一秒に重なったときに試す連番の上限。
+_MAX_RUN_SUFFIX = 100
+
+
+def _reserve_run_dir(base: Path, timestamp: str) -> Path:
+    """実行ごとの出力フォルダを排他的に作って返す。
+
+    同じ秒に複数のプロセスが走ると、フォルダ名が衝突して出力が混ざる。
+    「存在するか調べてから作る」では、調べた直後に別プロセスが作る隙間が残るため、
+    ``exist_ok=False`` で **作成そのものを排他操作にする**。
+    既に使われていれば連番をずらして、別のフォルダを確保する。
+    """
+    candidates = [timestamp] + [f"{timestamp}-{n}" for n in range(2, _MAX_RUN_SUFFIX)]
+    for name in candidates:
+        candidate = base / name
+        try:
+            candidate.mkdir(parents=True, exist_ok=False)
+            return candidate
+        except FileExistsError:
+            continue
+        except OSError as e:
+            raise ConversionError(f"{candidate}: 出力フォルダを作成できません: {e}") from e
+
+    raise ConversionError(
+        f"{base}: 同じ時刻の出力フォルダが {_MAX_RUN_SUFFIX} 個あります。古い出力を整理してください"
+    )
 
 
 def _plan_destinations(sources: List[Tuple[Path, Path]], output_dir: Path,
@@ -449,6 +485,15 @@ def _write_index(index_path: Path, entries: List[_Entry], config: Config,
     )
     index_path.parent.mkdir(parents=True, exist_ok=True)
     index_path.write_text(html, encoding="utf-8")
+
+
+def _remove_if_empty(directory: Path) -> None:
+    """確保しただけで使わなかった出力フォルダを片付ける。"""
+    try:
+        if directory.is_dir() and not any(directory.iterdir()):
+            directory.rmdir()
+    except OSError:
+        pass
 
 
 def _index_order(row: dict) -> tuple:

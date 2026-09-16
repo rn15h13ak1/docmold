@@ -226,6 +226,59 @@ class TestCollisions:
         assert 'href="doc.html"' in html and 'href="doc-b.html"' in html
 
 
+class TestRunDirectory:
+    """実行ごとの出力フォルダは、同じ秒に重なっても分かれること。"""
+
+    def test_same_second_gets_a_separate_folder(self, in_tmp, monkeypatch):
+        write(in_tmp / "a.md", "# A\n")
+        write(in_tmp / "b.md", "# B\n")
+        monkeypatch.setattr(cli, "timestamp_slug", lambda *a, **kw: "20260916-120000")
+
+        assert main(["a.md", "-q"]) == EXIT_OK
+        assert main(["b.md", "-q"]) == EXIT_OK
+
+        base = in_tmp / "tool-out"
+        assert (base / "20260916-120000" / "a.html").is_file()
+        assert (base / "20260916-120000-2" / "b.html").is_file()
+
+    def test_existing_folder_is_never_reused(self, in_tmp, monkeypatch):
+        """他のプロセスが先に作っていたフォルダには書き込まない。"""
+        write(in_tmp / "a.md", "# A\n")
+        monkeypatch.setattr(cli, "timestamp_slug", lambda *a, **kw: "20260916-120000")
+        taken = in_tmp / "tool-out" / "20260916-120000"
+        taken.mkdir(parents=True)
+        (taken / "先客.html").write_text("x", encoding="utf-8")
+
+        assert main(["a.md", "-q"]) == EXIT_OK
+        assert sorted(p.name for p in taken.iterdir()) == ["先客.html"]
+        assert (in_tmp / "tool-out" / "20260916-120000-2" / "a.html").is_file()
+
+    def test_reservation_is_exclusive(self, in_tmp):
+        """作成そのものが排他操作であること（存在確認と作成の隙間を作らない）。"""
+        base = in_tmp / "runs"
+        first = cli._reserve_run_dir(base, "20260916-120000")
+        second = cli._reserve_run_dir(base, "20260916-120000")
+        assert first != second
+        assert first.is_dir() and second.is_dir()
+
+    def test_dry_run_creates_nothing(self, in_tmp):
+        write(in_tmp / "a.md", "# A\n")
+        assert main(["a.md", "-q", "--dry-run"]) == EXIT_OK
+        assert not (in_tmp / "tool-out").exists()
+
+    def test_empty_run_folder_is_removed(self, in_tmp, monkeypatch):
+        """1 件も書き出せなかったときに、空のフォルダを残さない。"""
+        write(in_tmp / "a.md", "# A\n")
+        monkeypatch.setattr(cli, "_convert_one", lambda *a, **kw: None)
+        assert main(["a.md", "-q"]) == EXIT_FAILED
+        assert list((in_tmp / "tool-out").iterdir()) == []
+
+    def test_explicit_output_is_not_timestamped(self, in_tmp):
+        write(in_tmp / "a.md", "# A\n")
+        assert main(["a.md", "-o", "dist", "-q"]) == EXIT_OK
+        assert (in_tmp / "dist" / "a.html").is_file()
+
+
 class TestStrict:
     """--strict: 警告を失敗扱いにする（バッチでの取りこぼし防止）。"""
 
