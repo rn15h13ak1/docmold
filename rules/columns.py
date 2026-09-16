@@ -44,11 +44,14 @@ def entry_card(soup: Any, meta: Dict[str, Any]) -> None:
     コメントとしてカードの下段に入れる。
     """
     for list_tag in soup.find_all(["ul", "ol"]):
-        items = [item for item in list_tag.find_all("li", recursive=False)
-                 if _is_entry(item)]
+        all_items = list_tag.find_all("li", recursive=False)
+        items = [item for item in all_items if _is_entry(item)]
         if not items:
             continue
-        add_class(list_tag, "dm-entries")
+        # 全部が 1 件分なら箇条書きの体裁を外す。普通の項目が混ざっているときは
+        # そのままにして、混ざった項目が行頭記号を失わないようにする。
+        if len(items) == len(all_items):
+            add_class(list_tag, "dm-entries")
         for item in items:
             _build_entry(soup, item)
 

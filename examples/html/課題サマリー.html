@@ -483,6 +483,8 @@
 /* 1 行 1 件のカード (entry_card)。 */
 .dm-entries { list-style: none; margin: 0 0 10px; padding: 0; }
 .dm-entry {
+  /* 普通の項目と混ざった箇条書きでも、カードには行頭記号を出さない。 */
+  list-style: none;
   border-left: 3px solid var(--accent);
   background: var(--background);
   padding: 5px 10px;

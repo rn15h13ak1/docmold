@@ -301,3 +301,15 @@ class TestColumnsProfile:
         assert result.html.count('class="dm-topic"') == 1
         assert result.html.count('class="dm-group__title"') == 1
         assert result.html.count('class="dm-column__title"') == 3
+
+
+class TestMixedList:
+    def test_plain_items_keep_the_list_style(self):
+        soup = run("entry_card", "<ul><li>AB-1｜処理中｜遅い</li><li>ただの箇条書き</li></ul>")
+        # 普通の項目が混ざっているときは、箇条書きの体裁を外さない。
+        assert "dm-entries" not in (soup.select_one("ul").get("class") or [])
+        assert soup.select_one(".dm-entry") is not None
+
+    def test_entries_only_list_drops_the_list_style(self):
+        soup = run("entry_card", "<ul><li>AB-1｜処理中｜遅い</li><li>AB-2｜完了｜直った</li></ul>")
+        assert "dm-entries" in soup.select_one("ul")["class"]
