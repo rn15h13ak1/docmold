@@ -360,6 +360,8 @@
 /* 小見出しでまとめ直した並び (group_columns)。
    ひとまとまりを全幅に広げ、その中で節を列にする。 */
 .dm-content--columns > .dm-groups { grid-column: 1 / -1; }
+/* 小見出しを持たない節（トピックスなど）は列に割り付けず、横幅いっぱいに置く。 */
+.dm-content--columns > .dm-section--full { grid-column: 1 / -1; }
 .dm-group { margin: 0 0 22px; }
 .dm-group__title {
   margin: 0 0 8px;
@@ -704,7 +706,13 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 
 
   <main class="dm-content dm-content--columns">
-<div class="dm-groups"><section class="dm-group"><h2 class="dm-group__title">バグ対応</h2><div class="dm-group__columns"><section class="dm-column"><p class="dm-column__title">前週（3/2 〜 3/8）</p>
+<section class="dm-section dm-section--h2 dm-section--full" data-heading-id="トピックス"><h2 id="トピックス">トピックス</h2>
+<ul>
+<li>3/18 に移行リハーサルを実施する。当日は問い合わせ窓口を 1 名増やす。</li>
+<li>文字化けの報告が続いているため、出力周りの点検を今週中に一巡させる。</li>
+<li>3/20 は祝日のため、定例は 3/19 に振り替える。</li>
+</ul>
+</section><div class="dm-groups"><section class="dm-group"><h2 class="dm-group__title">バグ対応</h2><div class="dm-group__columns"><section class="dm-column"><p class="dm-column__title">前週（3/2 〜 3/8）</p>
 <ul class="dm-counts"><li class="dm-count"><span class="dm-count__label">残</span><span class="dm-count__value">4</span></li><li class="dm-count"><span class="dm-count__label">新規</span><span class="dm-count__value">2</span></li><li class="dm-count"><span class="dm-count__label">再オープン</span><span class="dm-count__value">0</span></li><li class="dm-count"><span class="dm-count__label">完了</span><span class="dm-count__value">3</span></li><li class="dm-count"><span class="dm-count__label">未完了</span><span class="dm-count__value">3</span></li></ul>
 <ul class="dm-entries">
 <li class="dm-entry"><p class="dm-entry__head"><span class="dm-entry__key">WEB-104</span><span class="dm-entry__meta">期限：3/6</span><span class="dm-badge dm-badge--ok">完了</span></p><p class="dm-entry__body">添付ファイルの削除が一覧に反映されない</p></li>
@@ -742,10 +750,6 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <ul class="dm-counts"><li class="dm-count"><span class="dm-count__label">予定</span><span class="dm-count__value">1</span></li><li class="dm-count"><span class="dm-count__label">期限切れ</span><span class="dm-count__value">0</span></li></ul>
 <ul class="dm-entries">
 <li class="dm-entry"><p class="dm-entry__head"><span class="dm-entry__key">WEB-088</span><span class="dm-entry__meta">期限：3/27</span><span class="dm-badge dm-badge--warn">処理中</span></p><p class="dm-entry__body">検索条件を保存できるようにしたい</p></li>
-</ul>
-</section></div></section><section class="dm-group"><h2 class="dm-group__title">連絡事項</h2><div class="dm-group__columns"><section class="dm-column dm-column--empty"><p class="dm-column__title">前週（3/2 〜 3/8）</p><p class="dm-column__empty">—</p></section><section class="dm-column dm-column--empty"><p class="dm-column__title">今週（3/9 〜 3/15）</p><p class="dm-column__empty">—</p></section><section class="dm-column"><p class="dm-column__title">来週の予定（3/16 〜 3/22）</p>
-<ul>
-<li>3/20 は祝日のため、定例は 3/19 に振り替える。</li>
 </ul></section></div></section></div>
   </main>
 

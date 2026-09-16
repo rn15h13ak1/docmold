@@ -133,6 +133,28 @@ class TestGroupColumns:
         soup = run("group_columns", section("前週", "<h3>バグ</h3><p>A</p>"))
         assert soup.select_one(".dm-group") is None
 
+    def test_section_without_subheadings_stays_as_one_column(self):
+        soup = run("group_columns",
+                   section("トピックス", "<ul><li>連絡</li></ul>")
+                   + section("前週", "<h3>バグ</h3><p>A</p>")
+                   + section("今週", "<h3>バグ</h3><p>B</p>"))
+        topics = soup.select_one(".dm-section")
+        # 列にはせず、横幅いっぱいに置くための印を付ける。
+        assert "dm-section--full" in topics["class"]
+        assert topics.find("h2").get_text() == "トピックス"
+        assert topics.select_one(".dm-column") is None
+        # 組み替えた列は、その節より後ろに置く（本文の順序を保つ）。
+        assert soup.select_one(".dm-groups") is not None
+        assert list(soup.children).index(topics) < list(soup.children).index(
+            soup.select_one(".dm-groups"))
+
+    def test_one_column_section_leaves_everything_alone(self):
+        soup = run("group_columns",
+                   section("トピックス", "<p>連絡</p>")
+                   + section("前週", "<h3>バグ</h3><p>A</p>"))
+        assert soup.select_one(".dm-groups") is None
+        assert soup.select_one(".dm-section--full") is None
+
 
 class TestColumnsProfile:
     def test_sample_is_grouped_by_subheading(self, config):

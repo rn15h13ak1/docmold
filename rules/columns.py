@@ -172,22 +172,28 @@ def group_columns(soup: Any, meta: Dict[str, Any]) -> None:
 
     ``## 前週 / ## 今週`` の中に ``### バグ対応`` を書いた文書を、
     「バグ対応の中に前週・今週の列」という並びに組み替える。
-    小見出しが無い文書では何もしない（節がそのまま列になる）。
+
+    **小見出しを持たない節は組み替えず、横幅いっぱいの 1 列として残す**
+    （前書きやトピックスを、列の上や下にそのまま置けるようにするため）。
+    小見出しがどこにも無い文書では何もしない（節がそのまま列になる）。
     """
     sections = [tag for tag in soup.find_all("section", recursive=False)
                 if "dm-section" in (tag.get("class") or [])]
-    if len(sections) < 2:
-        return
     sub_tag = _sub_heading_tag(sections)
     if sub_tag is None:
         return
 
-    column_titles = [_section_title(section) for section in sections]
+    targets = [section for section in sections if section.find(sub_tag) is not None]
+    others = [section for section in sections if section.find(sub_tag) is None]
+    if len(targets) < 2:
+        return
+
+    column_titles = [_section_title(section) for section in targets]
     order: List[str] = []
     # 小見出し → {列の位置: ノードの並び}
     grouped: Dict[str, Dict[int, List[Any]]] = {}
 
-    for position, section in enumerate(sections):
+    for position, section in enumerate(targets):
         for heading, nodes in _split_by_subheading(section, sub_tag):
             name = heading.get_text(strip=True) if heading is not None else ""
             if not name and not _has_content(nodes):
@@ -205,9 +211,13 @@ def group_columns(soup: Any, meta: Dict[str, Any]) -> None:
     for name in order:
         holder.append(_make_group(soup, name, grouped[name], column_titles))
 
-    sections[0].insert_before(holder)
-    for section in sections:
+    targets[0].insert_before(holder)
+    for section in targets:
         section.decompose()
+
+    # 残した節は列に割り付けず、横幅いっぱいに置く。
+    for section in others:
+        add_class(section, "dm-section--full")
 
 
 def _sub_heading_tag(sections: List[Any]) -> Any:
