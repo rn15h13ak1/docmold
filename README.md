@@ -1068,4 +1068,5 @@ FAILED tests/test_examples.py::TestGeneratedSamples::test_samples_are_up_to_date
 
 ## 変更履歴
 
-[CHANGELOG.md](CHANGELOG.md) を参照。バージョン番号は付けていません。
+[CHANGELOG.md](CHANGELOG.md) を参照。バージョンはコミット履歴から
+さかのぼって付けたもので、タグは打っていません。
