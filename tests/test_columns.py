@@ -79,3 +79,71 @@ class TestCountSummary:
     def test_decorated_paragraph_is_left_alone(self):
         soup = run("count_summary", "<p><strong>残:3</strong> / 新規:1</p>")
         assert soup.select_one(".dm-counts") is None
+
+
+def section(title: str, body: str) -> str:
+    """_wrap_sections が作るのと同じ節を組み立てる。"""
+    return f'<section class="dm-section dm-section--h2"><h2>{title}</h2>{body}</section>'
+
+
+class TestGroupColumns:
+    def test_subheadings_become_groups_holding_a_column_per_section(self):
+        soup = run("group_columns",
+                   section("前週", "<h3>バグ</h3><p>A</p><h3>要望</h3><p>B</p>")
+                   + section("今週", "<h3>バグ</h3><p>C</p><h3>要望</h3><p>D</p>"))
+        groups = soup.select(".dm-group")
+        assert [tag.get_text() for tag in soup.select(".dm-group__title")] == ["バグ", "要望"]
+        titles = [tag.get_text() for tag in groups[0].select(".dm-column__title")]
+        assert titles == ["前週", "今週"]
+        assert [tag.get_text() for tag in groups[0].select(".dm-column p:not(.dm-column__title)")] \
+            == ["A", "C"]
+
+    def test_missing_column_is_kept_as_an_empty_slot(self):
+        soup = run("group_columns",
+                   section("前週", "<h3>バグ</h3><p>A</p>")
+                   + section("今週", "<h3>バグ</h3><p>B</p><h3>連絡</h3><p>C</p>"))
+        notice = soup.select(".dm-group")[1]
+        columns = notice.select(".dm-column")
+        # 列の位置がずれないよう、中身が無くても枠は残す。
+        assert len(columns) == 2
+        assert "dm-column--empty" in columns[0]["class"]
+        assert "dm-column--empty" not in columns[1]["class"]
+
+    def test_group_order_follows_first_appearance(self):
+        soup = run("group_columns",
+                   section("前週", "<h3>B</h3><p>x</p>")
+                   + section("今週", "<h3>A</h3><p>y</p><h3>B</h3><p>z</p>"))
+        assert [tag.get_text() for tag in soup.select(".dm-group__title")] == ["B", "A"]
+
+    def test_content_before_the_first_subheading_is_kept(self):
+        soup = run("group_columns",
+                   section("前週", "<p>まえがき</p><h3>バグ</h3><p>A</p>")
+                   + section("今週", "<h3>バグ</h3><p>B</p>"))
+        first = soup.select_one(".dm-group")
+        assert first.select_one(".dm-group__title") is None
+        assert "まえがき" in first.get_text()
+
+    def test_document_without_subheadings_is_left_alone(self):
+        html = section("前週", "<p>A</p>") + section("今週", "<p>B</p>")
+        soup = run("group_columns", html)
+        assert soup.select_one(".dm-group") is None
+        assert len(soup.select(".dm-section")) == 2
+
+    def test_single_section_is_left_alone(self):
+        soup = run("group_columns", section("前週", "<h3>バグ</h3><p>A</p>"))
+        assert soup.select_one(".dm-group") is None
+
+
+class TestColumnsProfile:
+    def test_sample_is_grouped_by_subheading(self, config):
+        from converter import convert_text
+
+        result = convert_text(
+            "---\ntype: columns\ntitle: 課題\n---\n\n"
+            "## 前週\n\n### バグ対応\n\n残:1 / 完了:0\n\n- AB-1｜処理中｜遅い\n\n"
+            "## 今週\n\n### バグ対応\n\n残:1 / 完了:1\n\n- AB-1｜完了｜遅い\n",
+            config,
+        )
+        assert result.profile_name == "columns"
+        assert result.html.count('class="dm-group__title"') == 1
+        assert result.html.count('class="dm-column__title"') == 2

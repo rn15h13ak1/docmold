@@ -10,7 +10,9 @@ import re
 from typing import Any, Dict, List
 
 from rules import rule
-from rules.common import add_class, classify_status, make_badge
+from rules.common import (
+    HEADING_TAGS, add_class, classify_status, heading_level, make_badge,
+)
 
 #: 欄の区切り。全角・半角の縦棒どちらでも書ける。
 _SEPARATOR_RE = re.compile(r"[｜|]")
@@ -162,3 +164,127 @@ def _make_counts(soup: Any, counts: List[tuple]) -> Any:
         item.append(number)
         holder.append(item)
     return holder
+
+
+@rule("group_columns")
+def group_columns(soup: Any, meta: Dict[str, Any]) -> None:
+    """節の中の小見出しでまとめ直し、小見出しごとに節を列として並べる。
+
+    ``## 前週 / ## 今週`` の中に ``### バグ対応`` を書いた文書を、
+    「バグ対応の中に前週・今週の列」という並びに組み替える。
+    小見出しが無い文書では何もしない（節がそのまま列になる）。
+    """
+    sections = [tag for tag in soup.find_all("section", recursive=False)
+                if "dm-section" in (tag.get("class") or [])]
+    if len(sections) < 2:
+        return
+    sub_tag = _sub_heading_tag(sections)
+    if sub_tag is None:
+        return
+
+    column_titles = [_section_title(section) for section in sections]
+    order: List[str] = []
+    # 小見出し → {列の位置: ノードの並び}
+    grouped: Dict[str, Dict[int, List[Any]]] = {}
+
+    for position, section in enumerate(sections):
+        for heading, nodes in _split_by_subheading(section, sub_tag):
+            name = heading.get_text(strip=True) if heading is not None else ""
+            if not name and not _has_content(nodes):
+                continue
+            if name not in grouped:
+                grouped[name] = {}
+                order.append(name)
+            grouped[name][position] = nodes
+
+    if not order:
+        return
+
+    holder = soup.new_tag("div")
+    add_class(holder, "dm-groups")
+    for name in order:
+        holder.append(_make_group(soup, name, grouped[name], column_titles))
+
+    sections[0].insert_before(holder)
+    for section in sections:
+        section.decompose()
+
+
+def _sub_heading_tag(sections: List[Any]) -> Any:
+    """節の中で使われている、いちばん浅い見出しのタグ名を返す。無ければ None。"""
+    levels = set()
+    for section in sections:
+        own = section.find(HEADING_TAGS)
+        for heading in section.find_all(HEADING_TAGS):
+            if heading is not own:
+                levels.add(heading_level(heading))
+    return f"h{min(levels)}" if levels else None
+
+
+def _section_title(section: Any) -> str:
+    heading = section.find(HEADING_TAGS)
+    return heading.get_text(strip=True) if heading is not None else ""
+
+
+def _split_by_subheading(section: Any, sub_tag: str) -> List[tuple]:
+    """節を小見出しで区切り、``(見出しタグ or None, ノードの並び)`` を出現順で返す。
+
+    節は空になる（呼び出し側が組み直す）。小見出しより前にある内容は、
+    見出しなしの先頭の組として返す。
+    """
+    own = section.find(HEADING_TAGS)
+    parts: List[tuple] = [(None, [])]
+    for node in [child.extract() for child in list(section.contents)]:
+        if node is own:
+            continue
+        if getattr(node, "name", None) == sub_tag:
+            parts.append((node, []))
+        else:
+            parts[-1][1].append(node)
+    return parts
+
+
+def _has_content(nodes: List[Any]) -> bool:
+    """空白だけでない中身があるか。"""
+    return any(node.get_text(strip=True) if getattr(node, "name", None) else str(node).strip()
+               for node in nodes)
+
+
+def _make_group(soup: Any, name: str, columns: Dict[int, List[Any]],
+                column_titles: List[str]) -> Any:
+    group = soup.new_tag("section")
+    add_class(group, "dm-group")
+    if name:
+        title = soup.new_tag("h2")
+        add_class(title, "dm-group__title")
+        title.string = name
+        group.append(title)
+
+    holder = soup.new_tag("div")
+    add_class(holder, "dm-group__columns")
+    for position, column_title in enumerate(column_titles):
+        # 中身が無い列も枠だけ残す。列の位置が節ごとにずれないようにするため。
+        holder.append(_make_column(soup, column_title, columns.get(position) or []))
+    group.append(holder)
+    return group
+
+
+def _make_column(soup: Any, title: str, nodes: List[Any]) -> Any:
+    column = soup.new_tag("section")
+    add_class(column, "dm-column")
+    label = soup.new_tag("p")
+    add_class(label, "dm-column__title")
+    label.string = title
+    column.append(label)
+
+    if not _has_content(nodes):
+        add_class(column, "dm-column--empty")
+        empty = soup.new_tag("p")
+        add_class(empty, "dm-column__empty")
+        empty.string = "—"
+        column.append(empty)
+        return column
+
+    for node in nodes:
+        column.append(node)
+    return column

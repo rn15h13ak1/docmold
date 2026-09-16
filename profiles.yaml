@@ -116,5 +116,6 @@ profiles:
     template: columns.html
     theme: corporate
     toc: false
-    rules: [count_summary, entry_card, status_badge, progress_bar]
+    # group_columns を外すと、節がそのまま列になる（小見出しでまとめ直さない）。
+    rules: [count_summary, entry_card, status_badge, progress_bar, group_columns]
     meta_header: [期間, 報告者]

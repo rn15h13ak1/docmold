@@ -357,6 +357,42 @@
 .dm-content--columns > .dm-section { padding: 4px 14px 12px; }
 .dm-content--columns h3 { font-size: 14px; margin: 18px 0 6px; border: 0; padding: 0; }
 
+/* 小見出しでまとめ直した並び (group_columns)。
+   ひとまとまりを全幅に広げ、その中で節を列にする。 */
+.dm-content--columns > .dm-groups { grid-column: 1 / -1; }
+.dm-group { margin: 0 0 22px; }
+.dm-group__title {
+  margin: 0 0 8px;
+  font-size: 17px;
+  color: var(--accent);
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 4px;
+}
+.dm-group__columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+.dm-column {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  padding: 8px 12px 10px;
+  overflow-x: auto;
+}
+.dm-column__title {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: bold;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 4px;
+}
+.dm-column > :last-child { margin-bottom: 0; }
+.dm-column--empty { background: transparent; border-style: dashed; }
+.dm-column__empty { margin: 0; color: var(--muted); }
+
 /* 件数の並び (count_summary)。 */
 .dm-counts { list-style: none; display: flex; flex-wrap: wrap; gap: 4px 6px; margin: 6px 0 10px; padding: 0; }
 .dm-count {
@@ -536,7 +572,8 @@ pre.mermaid svg { max-width: 100%; height: auto; }
   a { color: inherit; text-decoration: none; }
   /* 目次と相互参照のリンク先は紙では追えないため、URL は展開しない。 */
 
-  .dm-section, .dm-step, .dm-summary__card, .dm-callout, .dm-figure, .dm-timeline__item {
+  .dm-section, .dm-step, .dm-summary__card, .dm-callout, .dm-figure, .dm-timeline__item,
+  .dm-group, .dm-column, .dm-entry {
     break-inside: avoid;
     page-break-inside: avoid;
   }
@@ -667,22 +704,14 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 
 
   <main class="dm-content dm-content--columns">
-<section class="dm-section dm-section--h2" data-heading-id="前週32-38"><h2 id="前週32-38">前週（3/2 〜 3/8）</h2>
-<h3 id="バグ対応">バグ対応</h3>
+<div class="dm-groups"><section class="dm-group"><h2 class="dm-group__title">バグ対応</h2><div class="dm-group__columns"><section class="dm-column"><p class="dm-column__title">前週（3/2 〜 3/8）</p>
 <ul class="dm-counts"><li class="dm-count"><span class="dm-count__label">残</span><span class="dm-count__value">4</span></li><li class="dm-count"><span class="dm-count__label">新規</span><span class="dm-count__value">2</span></li><li class="dm-count"><span class="dm-count__label">再オープン</span><span class="dm-count__value">0</span></li><li class="dm-count"><span class="dm-count__label">完了</span><span class="dm-count__value">3</span></li><li class="dm-count"><span class="dm-count__label">未完了</span><span class="dm-count__value">3</span></li></ul>
 <ul class="dm-entries">
 <li class="dm-entry"><p class="dm-entry__head"><span class="dm-entry__key">WEB-104</span><span class="dm-entry__meta">期限：3/6</span><span class="dm-badge dm-badge--ok">完了</span></p><p class="dm-entry__body">添付ファイルの削除が一覧に反映されない</p></li>
 <li class="dm-entry"><p class="dm-entry__head"><span class="dm-entry__key">WEB-097</span><span class="dm-entry__meta">期限：3/20</span><span class="dm-badge dm-badge--warn">処理中</span></p><p class="dm-entry__body">管理画面の一覧表示が遅い</p></li>
 <li class="dm-entry"><p class="dm-entry__head"><span class="dm-entry__key">WEB-118</span><span class="dm-entry__meta">期限：3/13</span><span class="dm-badge dm-badge--danger">未対応</span></p><p class="dm-entry__body">パスワード再設定メールが届かない</p></li>
 </ul>
-<h3 id="改善要望">改善要望</h3>
-<ul class="dm-counts"><li class="dm-count"><span class="dm-count__label">残</span><span class="dm-count__value">2</span></li><li class="dm-count"><span class="dm-count__label">新規</span><span class="dm-count__value">1</span></li><li class="dm-count"><span class="dm-count__label">再オープン</span><span class="dm-count__value">0</span></li><li class="dm-count"><span class="dm-count__label">完了</span><span class="dm-count__value">1</span></li><li class="dm-count"><span class="dm-count__label">未完了</span><span class="dm-count__value">2</span></li></ul>
-<ul class="dm-entries">
-<li class="dm-entry"><p class="dm-entry__head"><span class="dm-entry__key">WEB-088</span><span class="dm-entry__meta">期限：3/27</span><span class="dm-badge dm-badge--warn">処理中</span></p><p class="dm-entry__body">検索条件を保存できるようにしたい</p></li>
-<li class="dm-entry"><p class="dm-entry__head"><span class="dm-entry__key">WEB-121</span><span class="dm-entry__meta">期限：なし</span><span class="dm-badge dm-badge--danger">未対応</span></p><p class="dm-entry__body">一覧の表示件数を選べるようにしたい</p></li>
-</ul>
-</section><section class="dm-section dm-section--h2" data-heading-id="今週39-315"><h2 id="今週39-315">今週（3/9 〜 3/15）</h2>
-<h3 id="バグ対応_1">バグ対応</h3>
+</section><section class="dm-column"><p class="dm-column__title">今週（3/9 〜 3/15）</p>
 <ul class="dm-counts"><li class="dm-count"><span class="dm-count__label">残</span><span class="dm-count__value">3</span></li><li class="dm-count"><span class="dm-count__label">新規</span><span class="dm-count__value">1</span></li><li class="dm-count"><span class="dm-count__label">再オープン</span><span class="dm-count__value">1</span></li><li class="dm-count"><span class="dm-count__label">完了</span><span class="dm-count__value">1</span></li><li class="dm-count"><span class="dm-count__label">未完了</span><span class="dm-count__value">4</span></li></ul>
 <ul class="dm-entries">
 <li class="dm-entry"><p class="dm-entry__head"><span class="dm-entry__key">WEB-097</span><span class="dm-entry__meta">期限：3/20</span><span class="dm-badge dm-badge--warn">処理中</span></p><p class="dm-entry__body">管理画面の一覧表示が遅い</p></li>
@@ -690,29 +719,34 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <li class="dm-entry"><p class="dm-entry__head"><span class="dm-entry__key">WEB-131</span><span class="dm-entry__meta">期限：3/12</span><span class="dm-badge dm-badge--warn">処理中</span></p><p class="dm-entry__body">CSV 出力で日本語が文字化けする</p></li>
 <li class="dm-entry"><p class="dm-entry__head"><span class="dm-entry__key">WEB-104</span><span class="dm-entry__meta">期限：3/6</span><span class="dm-badge dm-badge--warn">再オープン</span></p><p class="dm-entry__body">添付ファイルの削除が一覧に反映されない</p></li>
 </ul>
-<h3 id="改善要望_1">改善要望</h3>
-<ul class="dm-counts"><li class="dm-count"><span class="dm-count__label">残</span><span class="dm-count__value">2</span></li><li class="dm-count"><span class="dm-count__label">新規</span><span class="dm-count__value">0</span></li><li class="dm-count"><span class="dm-count__label">再オープン</span><span class="dm-count__value">0</span></li><li class="dm-count"><span class="dm-count__label">完了</span><span class="dm-count__value">1</span></li><li class="dm-count"><span class="dm-count__label">未完了</span><span class="dm-count__value">1</span></li></ul>
-<ul class="dm-entries">
-<li class="dm-entry"><p class="dm-entry__head"><span class="dm-entry__key">WEB-088</span><span class="dm-entry__meta">期限：3/27</span><span class="dm-badge dm-badge--warn">処理中</span></p><p class="dm-entry__body">検索条件を保存できるようにしたい</p></li>
-<li class="dm-entry"><p class="dm-entry__head"><span class="dm-entry__key">WEB-121</span><span class="dm-entry__meta">期限：3/13</span><span class="dm-badge dm-badge--ok">完了</span></p><p class="dm-entry__body">一覧の表示件数を選べるようにしたい</p></li>
-</ul>
-</section><section class="dm-section dm-section--h2" data-heading-id="来週の予定316-322"><h2 id="来週の予定316-322">来週の予定（3/16 〜 3/22）</h2>
-<h3 id="バグ対応_2">バグ対応</h3>
+</section><section class="dm-column"><p class="dm-column__title">来週の予定（3/16 〜 3/22）</p>
 <ul class="dm-counts"><li class="dm-count"><span class="dm-count__label">予定</span><span class="dm-count__value">3</span></li><li class="dm-count"><span class="dm-count__label">期限切れ</span><span class="dm-count__value">1</span></li></ul>
 <ul class="dm-entries">
 <li class="dm-entry"><p class="dm-entry__head"><span class="dm-entry__key">WEB-118</span><span class="dm-entry__meta">期限：3/13</span><span class="dm-badge dm-badge--danger">期限超過</span></p><p class="dm-entry__body">パスワード再設定メールが届かない</p></li>
 <li class="dm-entry"><p class="dm-entry__head"><span class="dm-entry__key">WEB-097</span><span class="dm-entry__meta">期限：3/20</span><span class="dm-badge dm-badge--warn">処理中</span></p><p class="dm-entry__body">管理画面の一覧表示が遅い</p></li>
 <li class="dm-entry"><p class="dm-entry__head"><span class="dm-entry__key">WEB-104</span><span class="dm-entry__meta">期限：3/18</span><span class="dm-badge dm-badge--danger">未対応</span></p><p class="dm-entry__body">添付ファイルの削除が一覧に反映されない</p></li>
 </ul>
-<h3 id="改善要望_2">改善要望</h3>
+</section></div></section><section class="dm-group"><h2 class="dm-group__title">改善要望</h2><div class="dm-group__columns"><section class="dm-column"><p class="dm-column__title">前週（3/2 〜 3/8）</p>
+<ul class="dm-counts"><li class="dm-count"><span class="dm-count__label">残</span><span class="dm-count__value">2</span></li><li class="dm-count"><span class="dm-count__label">新規</span><span class="dm-count__value">1</span></li><li class="dm-count"><span class="dm-count__label">再オープン</span><span class="dm-count__value">0</span></li><li class="dm-count"><span class="dm-count__label">完了</span><span class="dm-count__value">1</span></li><li class="dm-count"><span class="dm-count__label">未完了</span><span class="dm-count__value">2</span></li></ul>
+<ul class="dm-entries">
+<li class="dm-entry"><p class="dm-entry__head"><span class="dm-entry__key">WEB-088</span><span class="dm-entry__meta">期限：3/27</span><span class="dm-badge dm-badge--warn">処理中</span></p><p class="dm-entry__body">検索条件を保存できるようにしたい</p></li>
+<li class="dm-entry"><p class="dm-entry__head"><span class="dm-entry__key">WEB-121</span><span class="dm-entry__meta">期限：なし</span><span class="dm-badge dm-badge--danger">未対応</span></p><p class="dm-entry__body">一覧の表示件数を選べるようにしたい</p></li>
+</ul>
+</section><section class="dm-column"><p class="dm-column__title">今週（3/9 〜 3/15）</p>
+<ul class="dm-counts"><li class="dm-count"><span class="dm-count__label">残</span><span class="dm-count__value">2</span></li><li class="dm-count"><span class="dm-count__label">新規</span><span class="dm-count__value">0</span></li><li class="dm-count"><span class="dm-count__label">再オープン</span><span class="dm-count__value">0</span></li><li class="dm-count"><span class="dm-count__label">完了</span><span class="dm-count__value">1</span></li><li class="dm-count"><span class="dm-count__label">未完了</span><span class="dm-count__value">1</span></li></ul>
+<ul class="dm-entries">
+<li class="dm-entry"><p class="dm-entry__head"><span class="dm-entry__key">WEB-088</span><span class="dm-entry__meta">期限：3/27</span><span class="dm-badge dm-badge--warn">処理中</span></p><p class="dm-entry__body">検索条件を保存できるようにしたい</p></li>
+<li class="dm-entry"><p class="dm-entry__head"><span class="dm-entry__key">WEB-121</span><span class="dm-entry__meta">期限：3/13</span><span class="dm-badge dm-badge--ok">完了</span></p><p class="dm-entry__body">一覧の表示件数を選べるようにしたい</p></li>
+</ul>
+</section><section class="dm-column"><p class="dm-column__title">来週の予定（3/16 〜 3/22）</p>
 <ul class="dm-counts"><li class="dm-count"><span class="dm-count__label">予定</span><span class="dm-count__value">1</span></li><li class="dm-count"><span class="dm-count__label">期限切れ</span><span class="dm-count__value">0</span></li></ul>
 <ul class="dm-entries">
 <li class="dm-entry"><p class="dm-entry__head"><span class="dm-entry__key">WEB-088</span><span class="dm-entry__meta">期限：3/27</span><span class="dm-badge dm-badge--warn">処理中</span></p><p class="dm-entry__body">検索条件を保存できるようにしたい</p></li>
 </ul>
-<h3 id="連絡事項">連絡事項</h3>
+</section></div></section><section class="dm-group"><h2 class="dm-group__title">連絡事項</h2><div class="dm-group__columns"><section class="dm-column dm-column--empty"><p class="dm-column__title">前週（3/2 〜 3/8）</p><p class="dm-column__empty">—</p></section><section class="dm-column dm-column--empty"><p class="dm-column__title">今週（3/9 〜 3/15）</p><p class="dm-column__empty">—</p></section><section class="dm-column"><p class="dm-column__title">来週の予定（3/16 〜 3/22）</p>
 <ul>
 <li>3/20 は祝日のため、定例は 3/19 に振り替える。</li>
-</ul></section>
+</ul></section></div></section></div>
   </main>
 
   <footer class="dm-footer">

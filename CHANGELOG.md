@@ -20,7 +20,7 @@
   - 障害報告: `severity_badge` / `impact_summary` / `timeline_table`
   - 設計書: `figure_caption` / `table_caption` / `cross_reference`
   - 週次報告: `status_badge` / `progress_bar`
-  - 列並べ: `count_summary` / `entry_card`
+  - 列並べ: `count_summary` / `entry_card` / `group_columns`
 - 完全自己完結 HTML の出力（CSS / JS / 画像 base64 を埋め込み、外部参照ゼロ）
 - 本文の生 HTML を許可リストで絞る（既定 `sanitize: strict`）。`script` / `onerror` /
   `javascript:` などを落とし、`<br>` や表の桁揃えは残す。トップレベルの `sanitize` が
@@ -33,9 +33,12 @@
   `examples/設計書.md` に図を 2 つ入れてある（この出力だけ外部参照を持つ）。
   mermaid.js は CDN 参照（`mermaid: cdn`）と同梱の埋め込み（`mermaid: true`）から選べる。
   既定は無効。CDN 参照にすると、その種類の HTML は自己完結ではなくなる
-- 節を横に並べる種類 `columns`。トップレベルの節がそのまま列になり
-  （3 つ書けば 3 列）、画面が狭ければ折り返す。列が狭いぶん、表ではなく
-  「1 行 1 件」で書けるようルールを 2 つ用意した。
+- 節を横に並べる種類 `columns`。`##` に期間、`###` に分類を書くと、
+  `group_columns` が分類ごとにまとめ直し、その中に期間を列として並べる
+  （`##` が 3 つなら 3 列。画面が狭ければ折り返す）。ある分類が一部の期間に
+  しか無い場合も、列の位置がずれないよう枠だけ残す。ルールを外せば、
+  節がそのまま列になる並びにも戻せる。
+  列が狭いぶん、表ではなく「1 行 1 件」で書けるようルールを 2 つ用意した。
   `count_summary` は `残:3 / 新規:1` だけの段落を件数の並びに、
   `entry_card` は `見出し｜属性｜説明` のリスト項目をカードにする。
   サンプルは `examples/課題サマリー.md`

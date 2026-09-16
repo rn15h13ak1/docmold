@@ -26,7 +26,8 @@
   a { color: inherit; text-decoration: none; }
   /* 目次と相互参照のリンク先は紙では追えないため、URL は展開しない。 */
 
-  .dm-section, .dm-step, .dm-summary__card, .dm-callout, .dm-figure, .dm-timeline__item {
+  .dm-section, .dm-step, .dm-summary__card, .dm-callout, .dm-figure, .dm-timeline__item,
+  .dm-group, .dm-column, .dm-entry {
     break-inside: avoid;
     page-break-inside: avoid;
   }
