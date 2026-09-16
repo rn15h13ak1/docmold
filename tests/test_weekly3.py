@@ -1,4 +1,4 @@
-"""rules/columns.py: 列並べ (weekly3) で使うルール。"""
+"""rules/weekly3.py: 週次 3 列で使うルール。"""
 from __future__ import annotations
 
 from bs4 import BeautifulSoup

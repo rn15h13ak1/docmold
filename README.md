@@ -964,7 +964,8 @@ docmold/
 ├── rules/                ② ルール層（意味づけ）
 │   ├── __init__.py       レジストリ（@rule デコレータ）
 │   ├── common.py         DOM 操作のヘルパ
-│   ├── minutes.py  incident.py  procedure.py  spec.py  weekly.py  columns.py
+│   ├── minutes.py  incident.py  procedure.py  spec.py  weekly.py
+│   ├── weekly3.py  period.py
 ├── templates/            ① テンプレート層（構造）
 │   ├── base.html         共通の骨格
 │   ├── article.html  stepped.html  report.html  document.html
