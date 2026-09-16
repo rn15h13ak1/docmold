@@ -93,7 +93,7 @@ class TestInDocument:
 
 def columns_doc(*titles: str, meta: str = "開始日: 2026-03-09") -> str:
     body = "\n\n".join(f"## {title}\n\n### バグ\n\n- AB-1｜処理中｜遅い" for title in titles)
-    return f"---\ntype: columns\ntitle: 課題\n{meta}\n---\n\n## トピックス\n\n連絡\n\n{body}\n"
+    return f"---\ntype: weekly3\ntitle: 課題\n{meta}\n---\n\n## トピックス\n\n連絡\n\n{body}\n"
 
 
 class TestColumnPeriods:

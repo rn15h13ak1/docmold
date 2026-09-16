@@ -127,5 +127,5 @@ class TestFooter:
     def test_columns_has_no_footer(self, config):
         from converter import convert_text
 
-        result = convert_text("---\ntype: columns\ntitle: 課題\n---\n\n## メモ\n\n本文\n", config)
+        result = convert_text("---\ntype: weekly3\ntitle: 課題\n---\n\n## メモ\n\n本文\n", config)
         assert "<footer" not in result.html

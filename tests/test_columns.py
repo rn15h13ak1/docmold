@@ -1,4 +1,4 @@
-"""rules/columns.py: 列並べで使うルール。"""
+"""rules/columns.py: 列並べ (weekly3) で使うルール。"""
 from __future__ import annotations
 
 from bs4 import BeautifulSoup
@@ -243,7 +243,7 @@ class TestSectionCount:
     def test_warning_reaches_the_conversion_result(self, config):
         from converter import convert_text
 
-        result = convert_text("---\ntype: columns\n---\n\n## トピックス\n\n連絡\n", config)
+        result = convert_text("---\ntype: weekly3\n---\n\n## トピックス\n\n連絡\n", config)
         assert any("見出し 2" in warning for warning in result.warnings)
 
 
@@ -289,14 +289,14 @@ class TestColumnsProfile:
         from converter import convert_text
 
         result = convert_text(
-            "---\ntype: columns\ntitle: 課題\n---\n\n"
+            "---\ntype: weekly3\ntitle: 課題\n---\n\n"
             "## トピックス\n\n### 連絡\n\n定例を振り替える。\n\n"
             "## 前週\n\n### バグ対応\n\n残:1 / 完了:0\n\n- AB-1｜処理中｜遅い\n\n"
             "## 今週\n\n### バグ対応\n\n残:1 / 完了:1\n\n- AB-1｜完了｜遅い\n\n"
             "## 来週\n\n### バグ対応\n\n残:1 / 完了:0\n\n- AB-1｜処理中｜遅い\n",
             config,
         )
-        assert result.profile_name == "columns"
+        assert result.profile_name == "weekly3"
         assert result.warnings == []
         assert result.html.count('class="dm-topic"') == 1
         assert result.html.count('class="dm-group__title"') == 1

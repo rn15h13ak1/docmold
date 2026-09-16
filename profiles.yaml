@@ -111,8 +111,8 @@ profiles:
     rules: [period_range, status_badge, progress_bar]
     meta_header: [期間, 報告者, チーム]
 
-  columns:
-    description: 列並べ（節を横に並べて見比べる）
+  weekly3:
+    description: 週次の 3 列（前週・今週・来週）
     template: columns.html
     theme: corporate
     toc: false

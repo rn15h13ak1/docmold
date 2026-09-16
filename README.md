@@ -435,7 +435,7 @@ profiles:
 
 ### 9. 節を横に並べる
 
-`type: columns` は、**見出し 2（`##`）を 4 つ書く前提の種類**です。
+`type: weekly3` は、**見出し 2（`##`）を 4 つ書く前提の種類**です。
 「前週 / 今週 / 来週の予定」のように、同じ形のものを並べて見比べる用途を想定しています。
 
 | `##` の位置 | 扱い |
@@ -503,7 +503,7 @@ profiles:
 
 ```markdown
 ---
-type: columns
+type: weekly3
 title: 課題サマリー
 開始日: 2026-03-09
 報告者: 鈴木花子
@@ -640,7 +640,7 @@ title: 課題サマリー
 
 ```yaml
 profiles:
-  columns:
+  weekly3:
     rules: [count_summary, entry_card, status_badge, progress_bar]
 ```
 
@@ -659,7 +659,7 @@ profiles:
 | `incident` | 冒頭にサマリカード（発生 / 復旧 / 影響範囲 / 重要度） | 時系列表をタイムライン表示、重要度バッジ | 警告色テーマ、DRAFT 透かし |
 | `spec` | 表紙 + 章番号付き目次 + 図表一覧 | 図表番号の自動採番（Mermaid の図を含む）、相互参照リンク | 標準テーマ、印刷最適化 |
 | `weekly` | カードレイアウト | ステータスバッジ、進捗バー | 標準テーマ |
-| `columns` | 見出し 2 を 4 つ。1 つ目が 1 列（トピックス。小見出しごとに枠）、2 〜 4 つ目が 3 列。フッタなし | 件数の並び、1 行 1 件のカード、ステータスバッジ | 標準テーマ、広めの紙面 |
+| `weekly3` | 見出し 2 を 4 つ。1 つ目が 1 列（トピックス。小見出しごとに枠）、2 〜 4 つ目が 3 列。フッタなし | 件数の並び、1 行 1 件のカード、ステータスバッジ | 標準テーマ、広めの紙面 |
 
 一覧は `python docmold.py --list-types` でも確認できます。
 
@@ -818,12 +818,12 @@ YAML は「どんな表現があるか」の一覧として読める状態に保
 | `cross_reference` | spec | 本文中の「図 N」「表 N」を図表へのリンク化 |
 | `status_badge` | weekly | 表の「状態」列をバッジ化 |
 | `progress_bar` | weekly | 表の「進捗」列の `80%` を進捗バー化 |
-| `period_range` | weekly / columns | front matter の「開始日」から「期間」を組み立てる |
-| `column_periods` | columns | 列の見出しに `（m/d〜m/d）` を補う |
-| `count_summary` | columns | `残:3 / 新規:1` だけの段落を件数の並びに変換 |
-| `entry_card` | columns | `｜` 区切りのリスト項目を 1 件のカードに変換（字下げした内容はコメント） |
-| `group_columns` | columns | 見出し 2 の 1 つ目を 1 列、2 つ目以降を列にする。列の中は小見出し 2 段でまとめ直す |
-| `topic_cards` | columns | 1 列にした節を、小見出しごとの枠に分ける（縦に積む） |
+| `period_range` | weekly / weekly3 | front matter の「開始日」から「期間」を組み立てる |
+| `column_periods` | weekly3 | 列の見出しに `（m/d〜m/d）` を補う |
+| `count_summary` | weekly3 | `残:3 / 新規:1` だけの段落を件数の並びに変換 |
+| `entry_card` | weekly3 | `｜` 区切りのリスト項目を 1 件のカードに変換（字下げした内容はコメント） |
+| `group_columns` | weekly3 | 見出し 2 の 1 つ目を 1 列、2 つ目以降を列にする。列の中は小見出し 2 段でまとめ直す |
+| `topic_cards` | weekly3 | 1 列にした節を、小見出しごとの枠に分ける（縦に積む） |
 
 ルールは **どの種類からでも使えます**。`rules:` に並べた順に適用されるため、
 `cross_reference` は採番ルール（`figure_caption` / `table_caption`）より後に置いてください。
@@ -879,7 +879,7 @@ $ docmold.py 定例.md
 
 ### 開始日から期間を作る（`period_range`）
 
-`weekly` / `columns` では、**`開始日` だけ書けば `期間` を組み立てます**（1 週間分）。
+`weekly` / `weekly3` では、**`開始日` だけ書けば `期間` を組み立てます**（1 週間分）。
 
 ```yaml
 開始日: 2026-03-09
@@ -899,7 +899,7 @@ $ docmold.py 定例.md
 
 ### 列の見出しに期間を補う（`column_periods`）
 
-`columns` では、**列の見出しに `（m/d〜m/d）` が自動で付きます**。md 側に日付を書く必要はありません。
+`weekly3` では、**列の見出しに `（m/d〜m/d）` が自動で付きます**。md 側に日付を書く必要はありません。
 
 ```markdown
 ## 前週
