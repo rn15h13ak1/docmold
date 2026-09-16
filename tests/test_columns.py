@@ -51,8 +51,30 @@ class TestEntryCard:
         assert soup.select_one(".dm-entry") is None
         assert soup.select_one(".dm-entries") is None
 
-    def test_nested_list_is_left_alone(self):
-        soup = run("entry_card", "<ul><li>親｜子<ul><li>孫</li></ul></li></ul>")
+    def test_nested_list_becomes_a_comment(self):
+        soup = run("entry_card",
+                   "<ul><li>AB-1｜処理中｜一覧表示が遅い"
+                   "<ul><li>3/19 に再現手順を共有済み</li></ul></li></ul>")
+        note = soup.select_one(".dm-entry__note")
+        assert note.find("li").get_text() == "3/19 に再現手順を共有済み"
+        # 1 行目はこれまでどおり欄に分かれる。
+        assert soup.select_one(".dm-entry__key").get_text() == "AB-1"
+        assert soup.select_one(".dm-entry__body").get_text() == "一覧表示が遅い"
+
+    def test_extra_paragraph_becomes_a_comment(self):
+        soup = run("entry_card",
+                   "<ul><li><p>AB-1｜処理中｜一覧表示が遅い</p><p>原因は調査中。</p></li></ul>")
+        assert soup.select_one(".dm-entry__key").get_text() == "AB-1"
+        assert soup.select_one(".dm-entry__note").get_text().strip() == "原因は調査中。"
+
+    def test_wrapped_item_without_a_comment_still_works(self):
+        # 項目の間を空けた箇条書きでは、中身が段落で包まれる。
+        soup = run("entry_card", "<ul><li><p>AB-1｜処理中｜一覧表示が遅い</p></li></ul>")
+        assert soup.select_one(".dm-entry__key").get_text() == "AB-1"
+        assert soup.select_one(".dm-entry__note") is None
+
+    def test_comment_only_item_is_left_alone(self):
+        soup = run("entry_card", "<ul><li>ただの箇条書き<ul><li>子</li></ul></li></ul>")
         assert soup.select_one(".dm-entry") is None
 
 

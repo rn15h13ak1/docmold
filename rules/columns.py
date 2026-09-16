@@ -26,6 +26,9 @@ _COUNT_RE = re.compile(r"\A\s*(?P<label>[^:：/／]+?)\s*[:：]\s*(?P<value>\d+)
 #: 件数の並びとみなす最小の個数。1 つだけなら普通の文とみなす。
 _MIN_COUNTS = 2
 
+#: コメントとして扱うブロック。1 行目より後に来たものが対象。
+_NOTE_BLOCKS = ("ul", "ol", "p", "blockquote", "pre", "table", "dl")
+
 #: 期待する見出し 2 の数。1 つ目が 1 列 (トピックス)、残りが列。
 EXPECTED_SECTIONS = 4
 
@@ -36,6 +39,9 @@ def entry_card(soup: Any, meta: Dict[str, Any]) -> None:
 
     欄は ``見出し｜属性…｜説明`` の順に読む。属性のうち状態を表す語はバッジになる。
     説明を付けない場合は末尾の欄を空にする（``見出し｜属性｜``）。
+
+    項目の下に字下げして書いた内容（入れ子の箇条書き・段落など）は、
+    コメントとしてカードの下段に入れる。
     """
     for list_tag in soup.find_all(["ul", "ol"]):
         items = [item for item in list_tag.find_all("li", recursive=False)
@@ -61,14 +67,40 @@ def count_summary(soup: Any, meta: Dict[str, Any]) -> None:
 
 
 def _is_entry(item: Any) -> bool:
-    """カードにするリスト項目か (区切りが 1 つ以上あり、入れ子のリストを持たない)。"""
-    if item.find(["ul", "ol"]) is not None:
-        return False
-    return bool(_SEPARATOR_RE.search(item.get_text()))
+    """カードにするリスト項目か (1 行目に区切りが 1 つ以上あるか)。"""
+    head, _ = _partition(item)
+    return bool(_SEPARATOR_RE.search(_field_text(head)))
+
+
+def _partition(item: Any) -> tuple:
+    """項目を (1 行目のノード, コメントのノード) に分ける (まだ項目に付いたまま)。
+
+    字下げして書いた入れ子の箇条書きや、2 つ目以降の段落をコメントとして扱う。
+    項目の間を空けた箇条書きでは中身が段落で包まれるため、その場合は
+    最初の段落の中身を 1 行目とみなす。
+    """
+    head: List[Any] = []
+    notes: List[Any] = []
+    for child in item.contents:
+        name = getattr(child, "name", None)
+        if not head and not notes and name == "p":
+            head = list(child.contents)
+            continue
+        if notes or name in _NOTE_BLOCKS:
+            notes.append(child)
+        else:
+            head.append(child)
+    return head, notes
 
 
 def _build_entry(soup: Any, item: Any) -> None:
-    fields = _split_fields(item)
+    head, notes = _partition(item)
+    head = [node.extract() for node in head]
+    notes = [node.extract() for node in notes]
+    # 取り出したあとの残り (空になった段落や改行) は捨てる。
+    item.clear()
+
+    fields = _split_fields(head)
     add_class(item, "dm-entry")
 
     head = soup.new_tag("p")
@@ -100,15 +132,21 @@ def _build_entry(soup: Any, item: Any) -> None:
         _fill(body, body_nodes)
         item.append(body)
 
+    if _has_content(notes):
+        note = soup.new_tag("div")
+        add_class(note, "dm-entry__note")
+        for node in notes:
+            note.append(node)
+        item.append(note)
 
-def _split_fields(item: Any) -> List[List[Any]]:
-    """``<li>`` の中身を区切りで分け、欄ごとの「ノードの並び」として返す。
+
+def _split_fields(nodes: List[Any]) -> List[List[Any]]:
+    """1 行目のノードを区切りで分け、欄ごとの「ノードの並び」として返す。
 
     文字列だけを区切るため、欄の中のリンクや強調はそのまま残る。
-    項目は空になる (呼び出し側が組み直す)。
     """
     fields: List[List[Any]] = [[]]
-    for child in [node.extract() for node in list(item.contents)]:
+    for child in nodes:
         if getattr(child, "name", None) is not None:
             fields[-1].append(child)
             continue

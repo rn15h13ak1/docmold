@@ -481,6 +481,18 @@
 .dm-entry__key { font-family: var(--mono); font-weight: bold; color: var(--accent); }
 .dm-entry__meta { color: var(--muted); font-size: 12px; }
 .dm-entry__body { margin: 2px 0 0; font-size: 14px; line-height: 1.6; }
+/* 1 件に添えるコメント。本文と区別が付くよう、区切り線と弱い色で下段に置く。 */
+.dm-entry__note {
+  margin: 6px 0 0;
+  padding-top: 5px;
+  border-top: 1px dashed var(--border);
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.7;
+}
+.dm-entry__note > :first-child { margin-top: 0; }
+.dm-entry__note > :last-child { margin-bottom: 0; }
+.dm-entry__note ul, .dm-entry__note ol { margin: 0; padding-left: 1.3em; }
 
 /* --- タイムライン -------------------------------------------------------- */
 
@@ -814,8 +826,15 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </section><section class="dm-column"><p class="dm-column__title">今週（3/9 〜 3/15）</p>
 <ul class="dm-counts"><li class="dm-count"><span class="dm-count__label">残</span><span class="dm-count__value">1</span></li><li class="dm-count"><span class="dm-count__label">新規</span><span class="dm-count__value">0</span></li><li class="dm-count"><span class="dm-count__label">再オープン</span><span class="dm-count__value">1</span></li><li class="dm-count"><span class="dm-count__label">完了</span><span class="dm-count__value">0</span></li><li class="dm-count"><span class="dm-count__label">未完了</span><span class="dm-count__value">2</span></li></ul>
 <ul class="dm-entries">
-<li class="dm-entry"><p class="dm-entry__head"><span class="dm-entry__key">WEB-097</span><span class="dm-entry__meta">期限：3/20</span><span class="dm-badge dm-badge--warn">処理中</span></p><p class="dm-entry__body">管理画面の一覧表示が遅い</p></li>
-<li class="dm-entry"><p class="dm-entry__head"><span class="dm-entry__key">WEB-104</span><span class="dm-entry__meta">期限：3/6</span><span class="dm-badge dm-badge--warn">再オープン</span></p><p class="dm-entry__body">添付ファイルの削除が一覧に反映されない</p></li>
+<li class="dm-entry"><p class="dm-entry__head"><span class="dm-entry__key">WEB-097</span><span class="dm-entry__meta">期限：3/20</span><span class="dm-badge dm-badge--warn">処理中</span></p><p class="dm-entry__body">管理画面の一覧表示が遅い</p><div class="dm-entry__note"><ul>
+<li>3/19 に再現手順を共有済み。件数の多い条件でのみ発生する。</li>
+</ul>
+</div></li>
+<li class="dm-entry"><p class="dm-entry__head"><span class="dm-entry__key">WEB-104</span><span class="dm-entry__meta">期限：3/6</span><span class="dm-badge dm-badge--warn">再オープン</span></p><p class="dm-entry__body">添付ファイルの削除が一覧に反映されない</p><div class="dm-entry__note"><ul>
+<li>別の画面で同じ事象が報告されたため再オープン。</li>
+<li>3/13 の定例で対応方針を決める。</li>
+</ul>
+</div></li>
 </ul>
 </section><section class="dm-column"><p class="dm-column__title">来週の予定（3/16 〜 3/22）</p>
 <ul class="dm-counts"><li class="dm-count"><span class="dm-count__label">予定</span><span class="dm-count__value">2</span></li><li class="dm-count"><span class="dm-count__label">期限切れ</span><span class="dm-count__value">0</span></li></ul>

@@ -481,6 +481,18 @@
 .dm-entry__key { font-family: var(--mono); font-weight: bold; color: var(--accent); }
 .dm-entry__meta { color: var(--muted); font-size: 12px; }
 .dm-entry__body { margin: 2px 0 0; font-size: 14px; line-height: 1.6; }
+/* 1 件に添えるコメント。本文と区別が付くよう、区切り線と弱い色で下段に置く。 */
+.dm-entry__note {
+  margin: 6px 0 0;
+  padding-top: 5px;
+  border-top: 1px dashed var(--border);
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.7;
+}
+.dm-entry__note > :first-child { margin-top: 0; }
+.dm-entry__note > :last-child { margin-bottom: 0; }
+.dm-entry__note ul, .dm-entry__note ol { margin: 0; padding-left: 1.3em; }
 
 /* --- タイムライン -------------------------------------------------------- */
 
