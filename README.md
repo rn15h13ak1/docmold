@@ -618,11 +618,17 @@ title: 課題サマリー
 （段落の中、普通の箇条書き、見出しなど）。
 
 ```markdown
+<span class="dm-badge dm-badge--info">お知らせ</span>
+3/20 は祝日のため、定例は 3/19 に振り替える。
+
 リリース判定は <span class="dm-badge dm-badge--ok">完了</span> です。
 
 - 手順書の改訂 <span class="dm-badge dm-badge--ok">完了</span>
-- 定例の振り替え <span class="dm-badge dm-badge--info">お知らせ</span>
+- 監視設定の見直し <span class="dm-badge dm-badge--danger">未着手</span>
 ```
+
+見出しの中にも置けますが、見出しが帯になる種類（`weekly3`）では帯と重なって
+読みにくくなります。**本文の先頭に置く**のが分かりやすいです。
 
 | クラス | 色 | 用途 |
 | --- | --- | --- |
