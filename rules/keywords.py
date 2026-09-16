@@ -33,9 +33,10 @@ DEFAULTS: Dict[str, List[str]] = {
     "status_ok": ["完了", "済", "対応済", "クローズ", "done", "closed", "ok", "正常",
                   "成功", "解決済"],
     "status_warn": ["進行中", "対応中", "作業中", "保留", "確認中", "wip", "in progress",
-                    "doing", "遅延", "注意", "warn", "warning", "中"],
+                    "doing", "遅延", "注意", "warn", "warning", "再オープン", "reopened",
+                    "中"],
     "status_danger": ["未着手", "未対応", "失敗", "停止", "異常", "ng", "blocked", "todo",
-                      "open", "高", "重大", "critical", "緊急"],
+                      "open", "高", "重大", "critical", "緊急", "期限超過", "期限切れ"],
 }
 
 #: 設定ファイルに書けるグループ名。

@@ -20,7 +20,7 @@
 
 {% block cover %}{% endblock %}
 
-<div class="dm-page">
+<div class="dm-page{% block page_class %}{% endblock %}">
   <header class="dm-header">
     <h1 class="dm-title">{{ title }}</h1>
     {% block header_extra %}{% endblock %}

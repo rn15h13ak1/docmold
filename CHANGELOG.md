@@ -9,7 +9,8 @@
 - front matter の `type` によるプロファイル切り替え（明示指定のみ。パス名や本文からの
   自動判定は行わない。未知の `type` は警告のうえ `default` で処理）
 - 3 層分離（テンプレート / ルール / テーマ）と YAML 駆動のプロファイル定義
-  - 同梱プロファイル: `default` / `minutes` / `procedure` / `incident` / `spec` / `weekly`
+  - 同梱プロファイル: `default` / `minutes` / `procedure` / `incident` / `spec` /
+    `weekly` / `columns`
   - 同梱 `profiles.yaml` にユーザ `config.yaml` を再帰マージ（差分だけ書けばよい）
 - ルールの検出語（「出席者」「ToDo」「時刻」「状態」など 13 グループ）を `config.yaml` の
   `keywords:` で差し替え可能。表記ゆれへの対応でコードを直さずに済む
@@ -19,6 +20,7 @@
   - 障害報告: `severity_badge` / `impact_summary` / `timeline_table`
   - 設計書: `figure_caption` / `table_caption` / `cross_reference`
   - 週次報告: `status_badge` / `progress_bar`
+  - 列並べ: `count_summary` / `entry_card`
 - 完全自己完結 HTML の出力（CSS / JS / 画像 base64 を埋め込み、外部参照ゼロ）
 - 本文の生 HTML を許可リストで絞る（既定 `sanitize: strict`）。`script` / `onerror` /
   `javascript:` などを落とし、`<br>` や表の桁揃えは残す。トップレベルの `sanitize` が
@@ -31,6 +33,13 @@
   `examples/設計書.md` に図を 2 つ入れてある（この出力だけ外部参照を持つ）。
   mermaid.js は CDN 参照（`mermaid: cdn`）と同梱の埋め込み（`mermaid: true`）から選べる。
   既定は無効。CDN 参照にすると、その種類の HTML は自己完結ではなくなる
+- 節を横に並べる種類 `columns`。トップレベルの節がそのまま列になり
+  （3 つ書けば 3 列）、画面が狭ければ折り返す。列が狭いぶん、表ではなく
+  「1 行 1 件」で書けるようルールを 2 つ用意した。
+  `count_summary` は `残:3 / 新規:1` だけの段落を件数の並びに、
+  `entry_card` は `見出し｜属性｜説明` のリスト項目をカードにする。
+  サンプルは `examples/課題サマリー.md`
+- 状態バッジの検出語に「再オープン」「期限超過」「期限切れ」を追加
 - 印刷用 `@media print`（手順書は見出しごとに改ページ、設計書は表紙を 1 ページ目に、
   障害報告は DRAFT 透かし）。ページ番号を下端に入れる（表紙には出さない）
 - ディレクトリ再帰の一括変換と索引 HTML の生成（`--index`）。索引は front matter の

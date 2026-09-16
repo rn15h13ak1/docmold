@@ -110,3 +110,11 @@ profiles:
     toc: false
     rules: [status_badge, progress_bar]
     meta_header: [期間, 報告者, チーム]
+
+  columns:
+    description: 列並べ（節を横に並べて見比べる）
+    template: columns.html
+    theme: corporate
+    toc: false
+    rules: [count_summary, entry_card, status_badge, progress_bar]
+    meta_header: [期間, 報告者]

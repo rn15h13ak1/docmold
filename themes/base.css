@@ -290,13 +290,15 @@
 .dm-summary__label { margin: 0 0 4px; font-size: 12px; color: var(--muted); }
 .dm-summary__value { margin: 0; font-size: 16px; font-weight: bold; line-height: 1.5; }
 
-.dm-content--dashboard {
+.dm-content--dashboard,
+.dm-content--columns {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
   gap: 16px;
   align-items: start;
 }
-.dm-content--dashboard > .dm-section {
+.dm-content--dashboard > .dm-section,
+.dm-content--columns > .dm-section {
   border: 1px solid var(--border);
   border-top: 4px solid var(--accent);
   border-radius: 4px;
@@ -304,17 +306,59 @@
   padding: 4px 18px 14px;
   margin: 0;
 }
-.dm-content--dashboard > .dm-section > :first-child { margin-top: 14px; }
+.dm-content--dashboard > .dm-section > :first-child,
+.dm-content--columns > .dm-section > :first-child { margin-top: 14px; }
 /* カード幅が狭いと表の列が 1 文字ずつ折り返されるため、下限を与えて
    収まらない分はカード内で横スクロールさせる。 */
-.dm-content--dashboard > .dm-section { overflow-x: auto; }
+.dm-content--dashboard > .dm-section,
+.dm-content--columns > .dm-section { overflow-x: auto; }
 .dm-content--dashboard table { min-width: 24em; }
-.dm-content--dashboard h1, .dm-content--dashboard h2 {
+/* 列並べは 1 列が狭いため、表の下限は置かず列の幅に従わせる。 */
+.dm-content--dashboard h1, .dm-content--dashboard h2,
+.dm-content--columns h1, .dm-content--columns h2 {
   border: 0;
   padding: 0;
   font-size: 16px;
   color: var(--accent);
 }
+
+/* --- 列並べ -------------------------------------------------------------- */
+
+/* 節を横に並べる種類。紙面を広げ、1 列あたりの下限を小さめに取ることで、
+   節が 3 つなら 3 列に並ぶようにしている。幅が足りなければ自動で折り返す。 */
+.dm-page--wide { max-width: 1280px; }
+.dm-content--columns { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.dm-content--columns > .dm-section { padding: 4px 14px 12px; }
+.dm-content--columns h3 { font-size: 14px; margin: 18px 0 6px; border: 0; padding: 0; }
+
+/* 件数の並び (count_summary)。 */
+.dm-counts { list-style: none; display: flex; flex-wrap: wrap; gap: 4px 6px; margin: 6px 0 10px; padding: 0; }
+.dm-count {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--background);
+  padding: 0 7px;
+  font-size: 12px;
+  line-height: 1.9;
+}
+.dm-count__label { color: var(--muted); }
+.dm-count__value { font-family: var(--mono); font-weight: bold; color: var(--accent); }
+
+/* 1 行 1 件のカード (entry_card)。 */
+.dm-entries { list-style: none; margin: 0 0 10px; padding: 0; }
+.dm-entry {
+  border-left: 3px solid var(--accent);
+  background: var(--background);
+  padding: 5px 10px;
+  margin: 0 0 6px;
+}
+.dm-entry__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; margin: 0; line-height: 1.6; }
+.dm-entry__key { font-family: var(--mono); font-weight: bold; color: var(--accent); }
+.dm-entry__meta { color: var(--muted); font-size: 12px; }
+.dm-entry__body { margin: 2px 0 0; font-size: 14px; line-height: 1.6; }
 
 /* --- タイムライン -------------------------------------------------------- */
 

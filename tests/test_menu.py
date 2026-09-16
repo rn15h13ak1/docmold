@@ -284,7 +284,10 @@ class TestParser:
 
 class TestDescribeConfig:
     def test_reports_profile_count(self):
-        assert "6 種類" in menu.describe_config("")
+        # 同梱プロファイルを増減させてもテストが壊れないよう、件数は設定から数える。
+        from config import load_config
+        expected = len(load_config().profiles)
+        assert f"{expected} 種類" in menu.describe_config("")
 
     def test_broken_config_is_reported(self, make_config):
         cfg = make_config("profiles:\n  default:\n    theme: nope\n")
