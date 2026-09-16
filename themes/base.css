@@ -344,12 +344,17 @@
   overflow: visible;
 }
 .dm-group { margin: 0 0 22px; }
-.dm-group__title {
-  margin: 0 0 8px;
-  font-size: 17px;
-  color: var(--accent);
-  border-bottom: 2px solid var(--accent);
-  padding-bottom: 4px;
+/* まとまりの見出しは帯にする。どこからどの見出しの内容かを、
+   枠線ではなく面で示すため。1 列の節の見出しも同じ帯に揃える。 */
+.dm-content--columns .dm-group__title,
+.dm-content--columns > .dm-section--full > h2 {
+  margin: 0 0 10px;
+  padding: 5px 12px;
+  font-size: 15px;
+  color: var(--accent-text);
+  background: var(--accent);
+  border: 0;
+  border-radius: 3px;
 }
 .dm-group__columns {
   display: grid;
@@ -364,13 +369,16 @@
   padding: 8px 12px 10px;
   overflow-x: auto;
 }
+/* 列の見出しは、まとまりの帯より一段弱い帯にする（入れ子が読み取れるように）。 */
 .dm-column__title {
-  margin: 0 0 6px;
+  margin: -8px -12px 8px;
+  padding: 4px 12px;
   font-size: 13px;
   font-weight: bold;
-  color: var(--muted);
+  color: var(--accent);
+  background: var(--accent-weak);
   border-bottom: 1px solid var(--border);
-  padding-bottom: 4px;
+  border-radius: 3px 3px 0 0;
 }
 .dm-column > :last-child { margin-bottom: 0; }
 .dm-column--empty { background: transparent; border-style: dashed; }
