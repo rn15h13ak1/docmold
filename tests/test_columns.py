@@ -160,6 +160,17 @@ class TestGroupColumns:
         assert soup.select_one(".dm-group") is None
         assert len(soup.select(".dm-section")) == 3
 
+    def test_deeper_subheadings_stay_inside_the_column(self):
+        soup = run("group_columns",
+                   section("トピックス", "<p>連絡</p>")
+                   + section("前週", "<h3>バグ</h3><h4>画面</h4><p>A</p><h4>帳票</h4><p>B</p>")
+                   + section("今週", "<h3>バグ</h3><h4>画面</h4><p>C</p>"))
+        # 区切りに使うのはいちばん浅い小見出しだけ。見出し 4 は列の中身として残す。
+        assert [tag.get_text() for tag in soup.select(".dm-group__title")] == ["バグ"]
+        column = soup.select(".dm-column")[0]
+        assert [tag.get_text() for tag in column.find_all("h4")] == ["画面", "帳票"]
+        assert [tag.get_text() for tag in column.find_all("p")[1:]] == ["A", "B"]
+
     def test_topics_only_is_left_alone(self):
         soup = run("group_columns", section("トピックス", "<p>連絡</p>"))
         assert soup.select_one(".dm-groups") is None

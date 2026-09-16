@@ -381,6 +381,19 @@
   border-radius: 3px 3px 0 0;
 }
 .dm-column > :last-child { margin-bottom: 0; }
+
+/* 列や枠の中のサブ項目（見出し 4）。帯にすると見出しが多重に見えるため、
+   細い縦線と色だけで一段下だと示す。 */
+.dm-content--columns .dm-column h4,
+.dm-content--columns .dm-topic h4 {
+  margin: 14px 0 5px;
+  padding: 0 0 0 8px;
+  font-size: 13px;
+  color: var(--accent);
+  border: 0;
+  border-left: 3px solid var(--accent-weak);
+}
+.dm-content--columns .dm-column h4:first-of-type { margin-top: 8px; }
 .dm-column--empty { background: transparent; border-style: dashed; }
 .dm-column__empty { margin: 0; color: var(--muted); }
 
