@@ -37,6 +37,7 @@ themes:
     ok: "#1e7e45"
     warn: "#b8860b"
     danger: "#c0392b"
+    info: "#1b5fa8"
 
   alert:
     accent: "#c0392b"
@@ -52,6 +53,7 @@ themes:
     ok: "#1e7e45"
     warn: "#b8860b"
     danger: "#c0392b"
+    info: "#1b5fa8"
 
 profiles:
   default:

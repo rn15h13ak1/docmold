@@ -612,6 +612,29 @@ title: 課題サマリー
 
 字下げした内容はカードの下段に、区切り線を挟んで入ります。箇条書きでも段落でも構いません。
 
+#### バッジを直接書く
+
+状態の色分けは表の「状態」列で自動的に付きますが、**`<span>` を書けばどこにでも置けます**
+（段落の中、普通の箇条書き、見出しなど）。
+
+```markdown
+リリース判定は <span class="dm-badge dm-badge--ok">完了</span> です。
+
+- 手順書の改訂 <span class="dm-badge dm-badge--ok">完了</span>
+- 定例の振り替え <span class="dm-badge dm-badge--info">お知らせ</span>
+```
+
+| クラス | 色 | 用途 |
+| --- | --- | --- |
+| `dm-badge--ok` | 緑 | 完了・正常 |
+| `dm-badge--warn` | 黄 | 対応中・注意 |
+| `dm-badge--danger` | 赤 | 未対応・異常 |
+| `dm-badge--info` | 青 | お知らせ・補足 |
+| `dm-badge` のみ | 灰 | 区分のない見出し語 |
+
+色はテーマの CSS 変数（`ok` / `warn` / `danger` / `info`）から取ります。
+`sanitize: strict` でも `span` と `class` は残るため、そのまま書けます。
+
 #### 自由に書く
 
 列の中は **Markdown をそのまま書けます**。段落・箇条書き・番号付きリスト・表・

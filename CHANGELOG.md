@@ -7,6 +7,10 @@
 
 ## [Unreleased]
 
+### Added
+- 情報を表すバッジ `dm-badge--info`（青系）。テーマに `info` の色を足し、
+  本文に `<span class="dm-badge dm-badge--info">…</span>` と書けば使える
+
 ## [0.4.0] - 2026-09-16
 
 週次の 3 列で出す種類 `weekly3` を追加しました。

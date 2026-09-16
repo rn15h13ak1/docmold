@@ -172,6 +172,7 @@
 .dm-badge--ok      { background: #e8f5ec; border-color: var(--ok);     color: var(--ok); }
 .dm-badge--warn    { background: #fdf3e0; border-color: var(--warn);   color: var(--warn); }
 .dm-badge--danger  { background: #fdecea; border-color: var(--danger); color: var(--danger); }
+.dm-badge--info    { background: #eaf1fa; border-color: var(--info);   color: var(--info); }
 .dm-badge--person  { background: var(--accent-weak); border-color: var(--accent); color: var(--accent); }
 
 /* --- コールアウト -------------------------------------------------------- */

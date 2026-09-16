@@ -129,3 +129,23 @@ class TestFooter:
 
         result = convert_text("---\ntype: weekly3\ntitle: 課題\n---\n\n## メモ\n\n本文\n", config)
         assert "<footer" not in result.html
+
+
+class TestBadgeColors:
+    def test_every_theme_defines_the_badge_colors(self, config):
+        # バッジは 4 色。テーマを足したときに色が欠けると、文字が読めなくなる。
+        for theme in config.themes.values():
+            assert {"ok", "warn", "danger", "info"} <= set(theme.variables)
+
+    def test_info_badge_is_styled(self, config):
+        from converter import convert_text
+
+        result = convert_text(
+            '---\ntype: minutes\ntitle: 確認\n---\n\n'
+            '## メモ\n\n<span class="dm-badge dm-badge--info">お知らせ</span>\n',
+            config,
+        )
+        # 本文に書いたバッジがサニタイズで落ちないこと。
+        assert 'class="dm-badge dm-badge--info"' in result.html
+        assert ".dm-badge--info" in result.html
+        assert result.warnings == []
