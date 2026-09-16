@@ -12,6 +12,7 @@ Markdown 拡張を書くより読み書きしやすく、種類の追加が
 シグネチャは ``(soup: BeautifulSoup, meta: dict) -> None``。戻り値は見ない。
 テンプレートに値を渡したいときは ``derived(meta)`` の dict に入れる
 （テンプレート側から ``derived.summary`` のように参照できる）。
+書き方の誤りを指摘したいときは ``warn(meta, ...)``。
 """
 from __future__ import annotations
 
@@ -47,6 +48,20 @@ def derived(meta: Dict[str, Any]) -> Dict[str, Any]:
         store = {}
         meta[DERIVED_KEY] = store
     return store
+
+
+#: ルールが出した警告の置き場 (``derived(meta)`` の中のキー)。
+WARNINGS_KEY = "warnings"
+
+
+def warn(meta: Dict[str, Any], message: str) -> None:
+    """ルールから警告を出す。converter が変換結果の警告に混ぜる。"""
+    derived(meta).setdefault(WARNINGS_KEY, []).append(message)
+
+
+def take_warnings(meta: Dict[str, Any]) -> List[str]:
+    """ルールが出した警告を取り出す (二重に数えないよう、取り出したら消す)。"""
+    return derived(meta).pop(WARNINGS_KEY, [])
 
 
 def unknown_rules(names: Iterable[str]) -> Set[str]:

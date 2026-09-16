@@ -34,7 +34,7 @@ from config import DEFAULT_PROFILE, Config, Profile
 from frontmatter import meta_to_text, split_front_matter
 from mermaid_ext import MermaidExtension
 from renderer import render
-from rules import DERIVED_KEY, apply_rules, keywords
+from rules import DERIVED_KEY, apply_rules, keywords, take_warnings
 from sanitize import sanitize
 from rules.common import HEADING_TAGS, add_class, heading_level, wrap_section
 
@@ -129,6 +129,7 @@ def convert_text(text: str, config: Config, *,
     _rewrite_document_links(soup)
     _wrap_sections(soup)
     apply_rules(profile.rules, soup, meta)
+    warnings.extend(take_warnings(meta))
 
     # 目次はルール適用後の DOM から作るため、画像埋め込みより先に確定させる。
     toc = _build_toc(soup, profile)

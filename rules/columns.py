@@ -9,7 +9,7 @@ from __future__ import annotations
 import re
 from typing import Any, Dict, List
 
-from rules import rule
+from rules import rule, warn
 from rules.common import (
     HEADING_TAGS, add_class, classify_status, heading_level, make_badge,
 )
@@ -25,6 +25,9 @@ _COUNT_RE = re.compile(r"\A\s*(?P<label>[^:：/／]+?)\s*[:：]\s*(?P<value>\d+)
 
 #: 件数の並びとみなす最小の個数。1 つだけなら普通の文とみなす。
 _MIN_COUNTS = 2
+
+#: 期待する見出し 2 の数。1 つ目が 1 列 (トピックス)、残りが列。
+EXPECTED_SECTIONS = 4
 
 
 @rule("entry_card")
@@ -168,24 +171,31 @@ def _make_counts(soup: Any, counts: List[tuple]) -> Any:
 
 @rule("group_columns")
 def group_columns(soup: Any, meta: Dict[str, Any]) -> None:
-    """節の中の小見出しでまとめ直し、小見出しごとに節を列として並べる。
+    """見出し 2 を「1 つ目 = 1 列」「2 つ目以降 = 列」として組み立てる。
 
-    ``## 前週 / ## 今週`` の中に ``### バグ対応`` を書いた文書を、
-    「バグ対応の中に前週・今週の列」という並びに組み替える。
+    ``## トピックス / ## 前週 / ## 今週 / ## 来週の予定`` と書いた文書を、
+    トピックスは横幅いっぱいの 1 列、残りは列として扱う。
+    列の中に小見出し (``### バグ対応``) があれば、小見出しごとにまとめ直し、
+    「バグ対応の中に前週・今週・来週の列」という並びにする。
 
-    **小見出しを持たない節は組み替えず、横幅いっぱいの 1 列として残す**
-    （前書きやトピックスを、列の上や下にそのまま置けるようにするため）。
-    小見出しがどこにも無い文書では何もしない（節がそのまま列になる）。
+    位置で決めるため、見出しの文字列は見ない。``## `` が
+    ``EXPECTED_SECTIONS`` 個でないときは警告する（処理は続ける）。
     """
     sections = [tag for tag in soup.find_all("section", recursive=False)
                 if "dm-section" in (tag.get("class") or [])]
-    sub_tag = _sub_heading_tag(sections)
-    if sub_tag is None:
+    if not sections:
         return
+    if len(sections) != EXPECTED_SECTIONS:
+        warn(meta, f"見出し 2 は {EXPECTED_SECTIONS} 個で書いてください"
+                   f"（1 つ目がトピックス、残りが列）。今は {len(sections)} 個です")
 
-    targets = [section for section in sections if section.find(sub_tag) is not None]
-    others = [section for section in sections if section.find(sub_tag) is None]
-    if len(targets) < 2:
+    # 1 つ目は列に割り付けず、横幅いっぱいに置く。
+    add_class(sections[0], "dm-section--full")
+
+    targets = sections[1:]
+    sub_tag = _sub_heading_tag(targets)
+    if sub_tag is None or len(targets) < 2:
+        # 組み替えるものが無い。残りの節はそのまま列になる。
         return
 
     column_titles = [_section_title(section) for section in targets]
@@ -214,10 +224,6 @@ def group_columns(soup: Any, meta: Dict[str, Any]) -> None:
     targets[0].insert_before(holder)
     for section in targets:
         section.decompose()
-
-    # 残した節は列に割り付けず、横幅いっぱいに置く。
-    for section in others:
-        add_class(section, "dm-section--full")
 
 
 def _sub_heading_tag(sections: List[Any]) -> Any:

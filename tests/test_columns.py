@@ -87,9 +87,12 @@ def section(title: str, body: str) -> str:
 
 
 class TestGroupColumns:
+    """見出し 2 の 1 つ目は 1 列、2 つ目以降は列（位置で決める）。"""
+
     def test_subheadings_become_groups_holding_a_column_per_section(self):
         soup = run("group_columns",
-                   section("前週", "<h3>バグ</h3><p>A</p><h3>要望</h3><p>B</p>")
+                   section("トピックス", "<p>連絡</p>")
+                   + section("前週", "<h3>バグ</h3><p>A</p><h3>要望</h3><p>B</p>")
                    + section("今週", "<h3>バグ</h3><p>C</p><h3>要望</h3><p>D</p>"))
         groups = soup.select(".dm-group")
         assert [tag.get_text() for tag in soup.select(".dm-group__title")] == ["バグ", "要望"]
@@ -98,12 +101,35 @@ class TestGroupColumns:
         assert [tag.get_text() for tag in groups[0].select(".dm-column p:not(.dm-column__title)")] \
             == ["A", "C"]
 
+    def test_first_section_is_kept_as_one_column(self):
+        soup = run("group_columns",
+                   section("トピックス", "<ul><li>連絡</li></ul>")
+                   + section("前週", "<h3>バグ</h3><p>A</p>")
+                   + section("今週", "<h3>バグ</h3><p>B</p>"))
+        topics = soup.select_one(".dm-section")
+        assert "dm-section--full" in topics["class"]
+        assert topics.find("h2").get_text() == "トピックス"
+        assert topics.select_one(".dm-column") is None
+        # 組み替えた列は、その節より後ろに置く（本文の順序を保つ）。
+        assert list(soup.children).index(topics) < list(soup.children).index(
+            soup.select_one(".dm-groups"))
+
+    def test_first_section_is_one_column_even_with_subheadings(self):
+        soup = run("group_columns",
+                   section("トピックス", "<h3>連絡</h3><p>A</p>")
+                   + section("前週", "<h3>バグ</h3><p>B</p>")
+                   + section("今週", "<h3>バグ</h3><p>C</p>"))
+        # 見出しの文字列ではなく位置で決めるため、小見出しがあっても列にしない。
+        assert [tag.get_text() for tag in soup.select(".dm-group__title")] == ["バグ"]
+        assert "dm-section--full" in soup.select_one(".dm-section")["class"]
+
     def test_missing_column_is_kept_as_an_empty_slot(self):
         soup = run("group_columns",
-                   section("前週", "<h3>バグ</h3><p>A</p>")
-                   + section("今週", "<h3>バグ</h3><p>B</p><h3>連絡</h3><p>C</p>"))
-        notice = soup.select(".dm-group")[1]
-        columns = notice.select(".dm-column")
+                   section("トピックス", "<p>連絡</p>")
+                   + section("前週", "<h3>バグ</h3><p>A</p>")
+                   + section("今週", "<h3>バグ</h3><p>B</p><h3>要望</h3><p>C</p>"))
+        request = soup.select(".dm-group")[1]
+        columns = request.select(".dm-column")
         # 列の位置がずれないよう、中身が無くても枠は残す。
         assert len(columns) == 2
         assert "dm-column--empty" in columns[0]["class"]
@@ -111,64 +137,59 @@ class TestGroupColumns:
 
     def test_group_order_follows_first_appearance(self):
         soup = run("group_columns",
-                   section("前週", "<h3>B</h3><p>x</p>")
+                   section("トピックス", "<p>連絡</p>")
+                   + section("前週", "<h3>B</h3><p>x</p>")
                    + section("今週", "<h3>A</h3><p>y</p><h3>B</h3><p>z</p>"))
         assert [tag.get_text() for tag in soup.select(".dm-group__title")] == ["B", "A"]
 
     def test_content_before_the_first_subheading_is_kept(self):
         soup = run("group_columns",
-                   section("前週", "<p>まえがき</p><h3>バグ</h3><p>A</p>")
+                   section("トピックス", "<p>連絡</p>")
+                   + section("前週", "<p>まえがき</p><h3>バグ</h3><p>A</p>")
                    + section("今週", "<h3>バグ</h3><p>B</p>"))
         first = soup.select_one(".dm-group")
         assert first.select_one(".dm-group__title") is None
         assert "まえがき" in first.get_text()
 
-    def test_document_without_subheadings_is_left_alone(self):
-        html = section("前週", "<p>A</p>") + section("今週", "<p>B</p>")
-        soup = run("group_columns", html)
-        assert soup.select_one(".dm-group") is None
-        assert len(soup.select(".dm-section")) == 2
-
-    def test_single_section_is_left_alone(self):
-        soup = run("group_columns", section("前週", "<h3>バグ</h3><p>A</p>"))
-        assert soup.select_one(".dm-group") is None
-
-    def test_section_without_subheadings_stays_as_one_column(self):
-        soup = run("group_columns",
-                   section("トピックス", "<ul><li>連絡</li></ul>")
-                   + section("前週", "<h3>バグ</h3><p>A</p>")
-                   + section("今週", "<h3>バグ</h3><p>B</p>"))
-        topics = soup.select_one(".dm-section")
-        # 列にはせず、横幅いっぱいに置くための印を付ける。
-        assert "dm-section--full" in topics["class"]
-        assert topics.find("h2").get_text() == "トピックス"
-        assert topics.select_one(".dm-column") is None
-        # 組み替えた列は、その節より後ろに置く（本文の順序を保つ）。
-        assert soup.select_one(".dm-groups") is not None
-        assert list(soup.children).index(topics) < list(soup.children).index(
-            soup.select_one(".dm-groups"))
-
-    def test_one_column_section_leaves_everything_alone(self):
+    def test_columns_without_subheadings_are_left_as_sections(self):
         soup = run("group_columns",
                    section("トピックス", "<p>連絡</p>")
-                   + section("前週", "<h3>バグ</h3><p>A</p>"))
+                   + section("前週", "<p>A</p>")
+                   + section("今週", "<p>B</p>"))
+        # 組み替えるものが無いので、節がそのまま列になる。
+        assert soup.select_one(".dm-group") is None
+        assert len(soup.select(".dm-section")) == 3
+
+    def test_topics_only_is_left_alone(self):
+        soup = run("group_columns", section("トピックス", "<p>連絡</p>"))
         assert soup.select_one(".dm-groups") is None
-        assert soup.select_one(".dm-section--full") is None
+        assert "dm-section--full" in soup.select_one(".dm-section")["class"]
 
 
-class TestColumnsProfile:
-    def test_sample_is_grouped_by_subheading(self, config):
+class TestSectionCount:
+    def warnings_of(self, html: str) -> list:
+        from bs4 import BeautifulSoup
+
+        from rules import apply_rules, take_warnings
+
+        meta: dict = {}
+        apply_rules(["group_columns"], BeautifulSoup(html, "html.parser"), meta)
+        return take_warnings(meta)
+
+    def test_four_sections_are_silent(self):
+        html = section("トピックス", "<p>x</p>") + "".join(
+            section(name, "<h3>バグ</h3><p>A</p>") for name in ("前週", "今週", "来週"))
+        assert self.warnings_of(html) == []
+
+    def test_other_counts_are_reported(self):
+        html = section("トピックス", "<p>x</p>") + section("前週", "<h3>バグ</h3><p>A</p>")
+        assert "4 個" in self.warnings_of(html)[0]
+
+    def test_warning_reaches_the_conversion_result(self, config):
         from converter import convert_text
 
-        result = convert_text(
-            "---\ntype: columns\ntitle: 課題\n---\n\n"
-            "## 前週\n\n### バグ対応\n\n残:1 / 完了:0\n\n- AB-1｜処理中｜遅い\n\n"
-            "## 今週\n\n### バグ対応\n\n残:1 / 完了:1\n\n- AB-1｜完了｜遅い\n",
-            config,
-        )
-        assert result.profile_name == "columns"
-        assert result.html.count('class="dm-group__title"') == 1
-        assert result.html.count('class="dm-column__title"') == 2
+        result = convert_text("---\ntype: columns\n---\n\n## トピックス\n\n連絡\n", config)
+        assert any("見出し 2" in warning for warning in result.warnings)
 
 
 class TestTopicCards:
