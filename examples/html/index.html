@@ -498,16 +498,8 @@
 .dm-content--columns li { margin: 2px 0; }
 
 /* 項目ごとに枠を分ける (topic_cards)。 */
-/* 枠への目次。箇条書きで縦に並べる。見出しは枠の帯と紛れないよう、文字だけにする。 */
-.dm-topic-index { margin: 0 0 14px; }
-.dm-content--columns .dm-topic-index__title {
-  margin: 0 0 6px;
-  padding: 0;
-  font-size: 14px;
-  color: var(--accent);
-  background: transparent;
-  border: 0;
-}
+/* 枠への目次。トピックの枠と同じ体裁にそろえる（下の .dm-topic と同じ指定）。 */
+.dm-topic-index { margin: 0 0 10px; }
 .dm-topic-index__list {
   margin: 0;
   padding-left: 1.3em;
@@ -523,7 +515,7 @@
   gap: 10px;
   margin: 8px 0 0;
 }
-.dm-topic {
+.dm-topic, .dm-topic-index {
   border: 1px solid var(--border);
   border-radius: 3px;
   background: var(--background);
@@ -531,7 +523,8 @@
   overflow: hidden;
 }
 /* 枠の見出しは濃い帯。段が下がるほど帯を淡くして、上下関係を色の濃さで示す。 */
-.dm-content--columns .dm-topic > h3 {
+.dm-content--columns .dm-topic > h3,
+.dm-content--columns .dm-topic-index__title {
   margin: 0 -14px 10px;
   padding: 5px 14px;
   font-size: 14px;
@@ -542,8 +535,8 @@
 /* 通し番号。見出しの文言と地続きに見えないよう、少し離して弱く見せる。 */
 .dm-topic__number { margin-right: 2px; opacity: 0.85; font-variant-numeric: tabular-nums; }
 
-.dm-topic > :first-child { margin-top: 0; }
-.dm-topic > :last-child { margin-bottom: 0; }
+.dm-topic > :first-child, .dm-topic-index > :first-child { margin-top: 0; }
+.dm-topic > :last-child, .dm-topic-index > :last-child { margin-bottom: 0; }
 /* 見出しを書かない枠は、上に余白を戻す。 */
 .dm-topic > :first-child:not(h3) { margin-top: 10px; }
 
