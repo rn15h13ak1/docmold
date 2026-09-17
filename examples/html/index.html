@@ -432,14 +432,15 @@
   border-radius: 0 3px 3px 0;
 }
 
-/* トピックスの枠の中のサブ項目。列と違って組み替えないため、細い縦線で示す。 */
+/* トピックスの枠の中のサブ項目。枠の見出しより淡い帯にして、段を示す。 */
 .dm-content--columns .dm-topic h4 {
-  margin: 14px 0 5px;
-  padding: 0 0 0 8px;
+  margin: 14px 0 6px;
+  padding: 3px 10px;
   font-size: 13px;
   color: var(--accent);
+  background: var(--surface);
   border: 0;
-  border-left: 3px solid var(--accent-weak);
+  border-radius: 3px;
 }
 
 /* さらに深い見出し。見出し 4 より目立たせない（既定の大きさのままだと、
