@@ -123,6 +123,35 @@ class TestChooseType:
         assert menu.choose_type(config) is None
 
 
+class TestChooseTypeDefault:
+    """前回選んだ種類を既定にする。"""
+
+    def defaults_of(self, config, monkeypatch, history: dict) -> tuple:
+        seen = {}
+
+        def capture(title, items, **kw):
+            seen.update(kw)
+            return 0
+
+        monkeypatch.setattr(menu, "print_menu", capture)
+        menu.choose_type(config, history)
+        return seen.get("default"), seen.get("default_mark")
+
+    def test_last_type_is_the_default(self, config, monkeypatch):
+        expected = config.type_names.index("incident") + 2
+        assert self.defaults_of(config, monkeypatch, {"type": "incident"}) == (expected, "前回")
+
+    def test_front_matter_is_remembered_too(self, config, monkeypatch):
+        assert self.defaults_of(config, monkeypatch, {"type": ""}) == (1, "前回")
+
+    def test_no_history_falls_back_to_front_matter(self, config, monkeypatch):
+        assert self.defaults_of(config, monkeypatch, {}) == (1, "既定")
+
+    def test_removed_type_falls_back_to_front_matter(self, config, monkeypatch):
+        # 設定から消えた種類が記録されていても、番号がずれた選択にならないこと。
+        assert self.defaults_of(config, monkeypatch, {"type": "nope"}) == (1, "既定")
+
+
 class TestInputText:
     def test_default_on_empty_enter(self, monkeypatch):
         monkeypatch.setattr("builtins.input", lambda _: "")
@@ -179,7 +208,7 @@ class TestCollectInputs:
     def test_index_is_not_asked_for_single_file(self, config, monkeypatch, make_md):
         path = str(make_md("# A\n"))
         monkeypatch.setattr(menu, "input_text", lambda *a, **kw: path)
-        monkeypatch.setattr(menu, "choose_type", lambda _: "")
+        monkeypatch.setattr(menu, "choose_type", lambda *a: "")
         monkeypatch.setattr(menu, "choose_output", lambda _: "")
         monkeypatch.setattr(menu, "confirm",
                             lambda *a, **kw: pytest.fail("単一ファイルで索引を尋ねた"))
@@ -188,7 +217,7 @@ class TestCollectInputs:
     def test_index_is_asked_for_directory(self, config, monkeypatch, make_md):
         directory = str(make_md("# A\n", "docs/a.md").parent)
         monkeypatch.setattr(menu, "input_text", lambda *a, **kw: directory)
-        monkeypatch.setattr(menu, "choose_type", lambda _: "")
+        monkeypatch.setattr(menu, "choose_type", lambda *a: "")
         monkeypatch.setattr(menu, "choose_output", lambda _: "")
         monkeypatch.setattr(menu, "confirm", lambda *a, **kw: True)
         assert menu.collect_inputs(config, {})["index"] is True

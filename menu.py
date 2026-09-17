@@ -203,13 +203,25 @@ def load_profiles(config_path: str):
         return None, str(e)
 
 
-def choose_type(config) -> str:
-    """種類の上書きを選ぶ。「front matter に従う」なら空文字、戻るなら None。"""
+def choose_type(config, history: dict = None) -> str:
+    """種類の上書きを選ぶ。「front matter に従う」なら空文字、戻るなら None。
+
+    前回選んだものを既定にする。前回の種類が設定から消えている場合は
+    「front matter に従う」に戻す。
+    """
     names = config.type_names
-    items = ["front matter に従う（既定）"] + [
+    items = ["front matter に従う（.md の指定をそのまま使う）"] + [
         f"{name} ― {config.profile(name).description or '説明なし'}" for name in names
     ]
-    choice = print_menu("種類（type）", items, default=1)
+    default, mark = 1, "既定"
+    if history is not None and "type" in history:
+        last = history["type"]
+        if not last:
+            mark = "前回"
+        elif last in names:
+            default, mark = names.index(last) + 2, "前回"
+
+    choice = print_menu("種類（type）", items, default=default, default_mark=mark)
     if choice == 0:
         return None
     if choice == 1:
@@ -228,7 +240,9 @@ def choose_output(history: dict) -> str:
         f"既定（{docmold_cli.DEFAULT_OUTPUT_DIR}/<日時>/）",
         "場所を指定する",
     ]
-    choice = print_menu("出力先", items, default=2 if last else 1)
+    choice = print_menu("出力先", items,
+                        default=2 if last else 1,
+                        default_mark="前回" if last else "既定")
     if choice == 0:
         return None
     if choice == 1:
@@ -325,7 +339,7 @@ def collect_inputs(config, history: dict) -> dict:
         return None
     print(f"    → {describe_input(input_path)}")
 
-    type_override = choose_type(config)
+    type_override = choose_type(config, history)
     if type_override is None:
         return None
 
