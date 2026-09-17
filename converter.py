@@ -299,7 +299,8 @@ def _build_toc(soup: BeautifulSoup, profile: Profile) -> List[Dict[str, Any]]:
 
 
 #: 見出しに差し込む UI 要素。目次の文言からは除く。
-UI_CLASSES = ("dm-step__number", "dm-step__check", "dm-heading__number")
+UI_CLASSES = ("dm-step__number", "dm-step__check", "dm-heading__number",
+              "dm-topic__number")
 
 
 def _heading_text(heading: Any) -> str:

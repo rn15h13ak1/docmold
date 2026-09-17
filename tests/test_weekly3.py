@@ -257,7 +257,8 @@ class TestTopicCards:
                    self.full_section("<h3>A</h3><p>あ</p><h3>B</h3><p>い</p>"))
         assert soup.select_one(".dm-topics") is not None
         topics = soup.select(".dm-topic")
-        assert [tag.find("h3").get_text() for tag in topics] == ["A", "B"]
+        # 見出しには通し番号が付く。
+        assert [tag.find("h3").get_text() for tag in topics] == ["１．A", "２．B"]
         assert topics[0].find("p").get_text() == "あ"
 
     def test_everything_until_the_next_subheading_stays_in_one_frame(self):
@@ -368,3 +369,31 @@ class TestTopicsFromMarkdown:
         html = convert_text(text, config).html
         assert html.count('class="dm-topic"') == 2
         assert '<h4 id="準備">' in html
+
+
+class TestTopicNumbering:
+    def test_frames_are_numbered_in_order(self):
+        soup = run("topic_cards",
+                   '<section class="dm-section dm-section--full"><h2>トピックス</h2>'
+                   "<h3>A</h3><p>あ</p><h3>B</h3><p>い</p><h3>C</h3><p>う</p></section>")
+        assert [tag.get_text() for tag in soup.select(".dm-topic__number")] == ["１．", "２．", "３．"]
+        assert soup.select(".dm-topic h3")[0].get_text() == "１．A"
+
+    def test_two_digits_are_full_width(self):
+        headings = "".join(f"<h3>H{i}</h3><p>x</p>" for i in range(1, 11))
+        soup = run("topic_cards",
+                   '<section class="dm-section dm-section--full"><h2>トピックス</h2>'
+                   f"{headings}</section>")
+        assert soup.select(".dm-topic__number")[-1].get_text() == "１０．"
+
+    def test_number_is_kept_out_of_the_title(self, config):
+        from converter import convert_text
+
+        result = convert_text(
+            "---\ntype: weekly3\n---\n\n## トピックス\n\n### リハーサル\n\n本文\n\n"
+            "## 前週\n\n### バグ\n\n本文\n\n## 今週\n\n### バグ\n\n本文\n"
+            "\n## 来週\n\n### バグ\n\n本文\n",
+            config,
+        )
+        # 本文の最初の見出しをタイトルに使うため、番号が混ざらないこと。
+        assert result.title == "トピックス"

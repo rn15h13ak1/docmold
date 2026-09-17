@@ -423,6 +423,8 @@ def topic_cards(soup: Any, meta: Dict[str, Any]) -> None:
 
     枠を切るのは **いちばん浅い小見出しだけ**。それより深い見出し (``####``) は、
     枠を分けずに中身として残す。
+
+    枠の見出しには ``１．`` の形で通し番号を付ける。
     """
     for section in soup.find_all("section"):
         if "dm-section--full" not in (section.get("class") or []):
@@ -438,5 +440,17 @@ def topic_cards(soup: Any, meta: Dict[str, Any]) -> None:
         holder = soup.new_tag("div")
         add_class(holder, "dm-topics")
         headings[0].insert_before(holder)
-        for heading in headings:
+        for number, heading in enumerate(headings, 1):
+            label = soup.new_tag("span")
+            add_class(label, "dm-topic__number")
+            label.string = _topic_number(number)
+            heading.insert(0, label)
             holder.append(wrap_section(soup, heading, "dm-topic"))
+
+
+#: 通し番号を全角にする (``１．``)。見出しの文言と見分けが付きやすいため。
+_FULLWIDTH_DIGITS = str.maketrans("0123456789", "０１２３４５６７８９")
+
+
+def _topic_number(number: int) -> str:
+    return f"{str(number).translate(_FULLWIDTH_DIGITS)}．"

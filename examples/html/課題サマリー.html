@@ -483,6 +483,9 @@
   border: 0;
   border-bottom: 1px solid var(--border);
 }
+/* 通し番号。見出しの文言と地続きに見えないよう、少し離して弱く見せる。 */
+.dm-topic__number { margin-right: 2px; opacity: 0.75; font-variant-numeric: tabular-nums; }
+
 .dm-topic > :first-child { margin-top: 0; }
 .dm-topic > :last-child { margin-bottom: 0; }
 /* 見出しを書かない枠は、上に余白を戻す。 */
@@ -798,7 +801,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 
   <main class="dm-content dm-content--columns">
 <section class="dm-section dm-section--h2 dm-section--full" data-heading-id="トピックス"><h2 id="トピックス">トピックス</h2>
-<div class="dm-topics"><section class="dm-topic"><h3 id="移行リハーサル">移行リハーサル</h3>
+<div class="dm-topics"><section class="dm-topic"><h3 id="移行リハーサル"><span class="dm-topic__number">１．</span>移行リハーサル</h3>
 <p>3/18 に実施する。当日は問い合わせ窓口を 1 名増やす。</p>
 <h4 id="準備の進み具合">準備の進み具合</h4>
 <table class="dm-table">
@@ -833,13 +836,13 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </table>
 <h4 id="当日の連絡体制">当日の連絡体制</h4>
 <p>問い合わせ窓口を 1 名増やし、切替の判断は 10:00 の時点で行う。</p>
-</section><section class="dm-topic"><h3 id="文字化けの調査">文字化けの調査</h3>
+</section><section class="dm-topic"><h3 id="文字化けの調査"><span class="dm-topic__number">２．</span>文字化けの調査</h3>
 <p>出力周りの点検を今週中に一巡させる。結果は 3/19 の定例で共有する。</p>
 <ul>
 <li>影響範囲の切り分けは 3/17 まで</li>
 <li>修正方針の確認は 3/19 の定例</li>
 </ul>
-</section><section class="dm-topic"><h3 id="定例の振り替え">定例の振り替え</h3>
+</section><section class="dm-topic"><h3 id="定例の振り替え"><span class="dm-topic__number">３．</span>定例の振り替え</h3>
 <p><span class="dm-badge dm-badge--info">お知らせ</span>
 3/20 は祝日のため、定例は 3/19 に振り替える。</p>
 </section></div></section><div class="dm-groups"><section class="dm-group"><h2 class="dm-group__title">バグ対応</h2><section class="dm-subgroup"><h3 class="dm-subgroup__title">画面まわり</h3><div class="dm-group__columns"><section class="dm-column"><p class="dm-column__title">前週（3/2〜3/8）</p>
