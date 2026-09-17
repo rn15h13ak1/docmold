@@ -26,6 +26,9 @@ _COUNT_RE = re.compile(r"\A\s*(?P<label>[^:：/／]+?)\s*[:：]\s*(?P<value>\d+)
 #: 件数の並びとみなす最小の個数。1 つだけなら普通の文とみなす。
 _MIN_COUNTS = 2
 
+#: 枠への目次に付ける見出し。
+INDEX_TITLE = "目次"
+
 #: コメントとして扱うブロック。1 行目より後に来たものが対象。
 _NOTE_BLOCKS = ("ul", "ol", "p", "blockquote", "pre", "table", "dl")
 
@@ -477,6 +480,10 @@ def topic_index(soup: Any, meta: Dict[str, Any]) -> None:
 
         index = soup.new_tag("nav")
         add_class(index, "dm-topic-index")
+        title = soup.new_tag("h3")
+        add_class(title, "dm-topic-index__title")
+        title.string = INDEX_TITLE
+        index.append(title)
         items = soup.new_tag("ul")
         add_class(items, "dm-topic-index__list")
         for number, heading in enumerate(headings, 1):

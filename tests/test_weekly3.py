@@ -451,3 +451,20 @@ class TestTopicIndex:
             config,
         )
         assert '<a href="#リハーサル">１．リハーサル</a>' in result.html
+
+
+class TestTopicIndexTitle:
+    def test_index_has_a_heading(self):
+        from bs4 import BeautifulSoup
+
+        from rules import apply_rules
+        from rules.weekly3 import INDEX_TITLE
+
+        soup = BeautifulSoup(
+            '<section class="dm-section dm-section--full"><h2>トピックス</h2>'
+            '<h3 id="a">A</h3><p>あ</p><h3 id="b">B</h3><p>い</p></section>',
+            "html.parser")
+        apply_rules(["topic_cards", "topic_index"], soup, {})
+        title = soup.select_one(".dm-topic-index__title")
+        assert title.name == "h3"
+        assert title.get_text() == INDEX_TITLE

@@ -499,8 +499,16 @@
 .dm-content--columns li { margin: 2px 0; }
 
 /* 項目ごとに枠を分ける (topic_cards)。 */
-/* 枠への目次。箇条書きで縦に並べる。 */
+/* 枠への目次。箇条書きで縦に並べる。見出しは枠の帯と紛れないよう、文字だけにする。 */
 .dm-topic-index { margin: 0 0 14px; }
+.dm-content--columns .dm-topic-index__title {
+  margin: 0 0 6px;
+  padding: 0;
+  font-size: 14px;
+  color: var(--accent);
+  background: transparent;
+  border: 0;
+}
 .dm-topic-index__list {
   margin: 0;
   padding-left: 1.3em;
