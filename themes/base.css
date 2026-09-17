@@ -70,12 +70,20 @@
 
 .dm-content table, .dm-table {
   border-collapse: collapse;
-  /* 列の幅は中身に合わせる。幅いっぱいに広げると、短い列まで間延びして読みにくい。 */
-  width: auto;
-  max-width: 100%;
+  width: 100%;
   margin: 1em 0;
   font-size: 14px;
 }
+/* 余った幅は最後の列に持たせる。短い語が並ぶ列を広げても読みやすくならないため。
+   最後より前の列は、折り返さずに済む幅を下限にして潰れないようにする。 */
+.dm-content table:not(.dm-meta) th:last-child,
+.dm-content table:not(.dm-meta) td:last-child,
+.dm-table:not(.dm-meta) th:last-child,
+.dm-table:not(.dm-meta) td:last-child { width: 100%; }
+.dm-content table:not(.dm-meta) th:not(:last-child),
+.dm-content table:not(.dm-meta) td:not(:last-child),
+.dm-table:not(.dm-meta) th:not(:last-child),
+.dm-table:not(.dm-meta) td:not(:last-child) { white-space: nowrap; }
 .dm-content th, .dm-content td, .dm-table th, .dm-table td {
   border: 1px solid var(--border);
   padding: 6px 10px;
