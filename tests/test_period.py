@@ -15,20 +15,20 @@ def run(meta: dict) -> tuple:
 class TestPeriodRange:
     def test_start_becomes_a_one_week_period(self):
         data, warnings = run({"開始日": "2026-03-09"})
-        assert data["期間"] == "2026-03-09 〜 2026-03-15"
+        assert data["期間"] == "2026-03-09(月) 〜 2026-03-15(日)"
         assert warnings == []
 
     def test_period_crosses_the_month(self):
         data, _ = run({"開始日": "2026-03-30"})
-        assert data["期間"] == "2026-03-30 〜 2026-04-05"
+        assert data["期間"] == "2026-03-30(月) 〜 2026-04-05(日)"
 
     def test_slash_is_kept(self):
         data, _ = run({"開始日": "2026/03/09"})
-        assert data["期間"] == "2026/03/09 〜 2026/03/15"
+        assert data["期間"] == "2026/03/09(月) 〜 2026/03/15(日)"
 
     def test_single_digits_are_padded(self):
         data, _ = run({"開始日": "2026-3-9"})
-        assert data["期間"] == "2026-03-09 〜 2026-03-15"
+        assert data["期間"] == "2026-03-09(月) 〜 2026-03-15(日)"
 
     def test_existing_period_is_kept(self):
         data, warnings = run({"期間": "2026-03-01 〜 2026-03-31"})
@@ -55,8 +55,8 @@ class TestPeriodRange:
         assert warnings == []
 
     def test_other_spellings_work(self):
-        assert run({"起算日": "2026-03-09"})[0]["期間"] == "2026-03-09 〜 2026-03-15"
-        assert run({"start": "2026-03-09"})[0]["期間"] == "2026-03-09 〜 2026-03-15"
+        assert run({"起算日": "2026-03-09"})[0]["期間"] == "2026-03-09(月) 〜 2026-03-15(日)"
+        assert run({"start": "2026-03-09"})[0]["期間"] == "2026-03-09(月) 〜 2026-03-15(日)"
 
 
 class TestInDocument:
@@ -67,7 +67,7 @@ class TestInDocument:
             "---\ntype: weekly\ntitle: 週報\n開始日: 2026-03-09\n---\n\n## 進捗\n\n本文\n",
             config,
         )
-        assert "2026-03-09 〜 2026-03-15" in result.html
+        assert "2026-03-09(月) 〜 2026-03-15(日)" in result.html
         assert result.warnings == []
 
     def test_period_is_still_accepted(self, config):
@@ -77,6 +77,7 @@ class TestInDocument:
             "---\ntype: weekly\ntitle: 週報\n期間: 2026-03-09 〜 2026-03-15\n---\n\n## 進捗\n\n本文\n",
             config,
         )
+        # 自分で書いた期間は書き換えない（曜日も足さない）。
         assert "2026-03-09 〜 2026-03-15" in result.html
 
     def test_index_uses_the_built_period(self, config):
@@ -107,7 +108,7 @@ class TestColumnPeriods:
 
         result = convert_text(columns_doc("前週", "今週", "来週の予定"), config)
         assert self.titles_of(result.html)[:3] == [
-            "前週（3/2〜3/8）", "今週（3/9〜3/15）", "来週の予定（3/16〜3/22）",
+            "前週（3/2(月)〜3/8(日)）", "今週（3/9(月)〜3/15(日)）", "来週の予定（3/16(月)〜3/22(日)）",
         ]
 
     def test_period_key_works_too(self, config):
@@ -116,7 +117,7 @@ class TestColumnPeriods:
         result = convert_text(
             columns_doc("前週", "今週", "来週", meta="期間: 2026-03-09 〜 2026-03-15"), config)
         assert self.titles_of(result.html)[:3] == [
-            "前週（3/2〜3/8）", "今週（3/9〜3/15）", "来週（3/16〜3/22）",
+            "前週（3/2(月)〜3/8(日)）", "今週（3/9(月)〜3/15(日)）", "来週（3/16(月)〜3/22(日)）",
         ]
 
     def test_range_written_by_hand_is_kept(self, config):

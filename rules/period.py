@@ -18,6 +18,9 @@ PERIOD_DAYS = 7
 #: 期間の区切り。
 PERIOD_SEPARATOR = " 〜 "
 
+#: 曜日の表記。date.weekday() (月曜が 0) の順。
+WEEKDAYS = "月火水木金土日"
+
 #: 列の見出しに補う期間の区切り (``前週（3/2〜3/8）``)。
 COLUMN_SEPARATOR = "〜"
 
@@ -79,7 +82,13 @@ def _parse_date(text: str) -> Optional[Tuple[date, str]]:
 
 
 def _format(value: date, separator: str) -> str:
-    return f"{value.year:04d}{separator}{value.month:02d}{separator}{value.day:02d}"
+    """``2026-03-09(月)`` の形にする。曜日は週の区切りを読み取るのに要る。"""
+    return (f"{value.year:04d}{separator}{value.month:02d}{separator}{value.day:02d}"
+            f"({_weekday(value)})")
+
+
+def _weekday(value: date) -> str:
+    return WEEKDAYS[value.weekday()]
 
 
 @rule("column_periods")
@@ -128,4 +137,4 @@ def _start_date(meta: Dict[str, Any]) -> Optional[date]:
 
 
 def _month_day(value: date) -> str:
-    return f"{value.month}/{value.day}"
+    return f"{value.month}/{value.day}({_weekday(value)})"
