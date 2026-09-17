@@ -420,15 +420,20 @@ def topic_cards(soup: Any, meta: Dict[str, Any]) -> None:
     ``group_columns`` が 1 列にした節（1 つ目の見出し 2）が対象。
     ``### 見出し`` から次の ``###`` までが 1 枠になり、枠の中は複数行でも書ける。
     小見出しより前に書いた内容は、枠の外に残す。
+
+    枠を切るのは **いちばん浅い小見出しだけ**。それより深い見出し (``####``) は、
+    枠を分けずに中身として残す。
     """
     for section in soup.find_all("section"):
         if "dm-section--full" not in (section.get("class") or []):
             continue
         own = section.find(HEADING_TAGS)
-        headings = [tag for tag in section.find_all(HEADING_TAGS)
-                    if tag is not own and tag.parent is section]
-        if not headings:
+        inner = [tag for tag in section.find_all(HEADING_TAGS)
+                 if tag is not own and tag.parent is section]
+        if not inner:
             continue
+        top = min(heading_level(tag) for tag in inner)
+        headings = [tag for tag in inner if heading_level(tag) == top]
 
         holder = soup.new_tag("div")
         add_class(holder, "dm-topics")

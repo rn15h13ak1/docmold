@@ -273,6 +273,15 @@ class TestTopicCards:
         assert "まえがき" not in soup.select_one(".dm-topics").get_text()
         assert "まえがき" in soup.select_one(".dm-section").get_text()
 
+    def test_deeper_subheadings_stay_inside_the_frame(self):
+        soup = run("topic_cards",
+                   self.full_section("<h3>A</h3><p>あ</p><h4>A-1</h4><p>い</p><h3>B</h3><p>う</p>"))
+        topics = soup.select(".dm-topic")
+        # 枠を切るのはいちばん浅い小見出しだけ。見出し 4 は枠の中に残す。
+        assert len(topics) == 2
+        assert topics[0].find("h4").get_text() == "A-1"
+        assert "い" in topics[0].get_text()
+
     def test_section_without_subheadings_is_left_alone(self):
         soup = run("topic_cards", self.full_section("<ul><li>A</li></ul>"))
         assert soup.select_one(".dm-topic") is None
@@ -345,3 +354,17 @@ class TestCommentsFromMarkdown:
         html = self.convert("- AB-1｜処理中｜遅い\n  - 3/19 に共有済み", config)
         # python-markdown は 2 文字では入れ子にしない（同じ階層の項目になる）。
         assert 'class="dm-entry__note"' not in html
+
+
+class TestTopicsFromMarkdown:
+    def test_sub_items_are_not_split_into_frames(self, config):
+        from converter import convert_text
+
+        text = ("---\ntype: weekly3\ntitle: t\n---\n\n"
+                "## トピックス\n\n### リハーサル\n\n本文\n\n#### 準備\n\n下準備\n\n"
+                "### 調査\n\n本文\n\n"
+                "## 前週\n\n### バグ\n\n本文\n\n## 今週\n\n### バグ\n\n本文\n"
+                "\n## 来週\n\n### バグ\n\n本文\n")
+        html = convert_text(text, config).html
+        assert html.count('class="dm-topic"') == 2
+        assert '<h4 id="準備">' in html
