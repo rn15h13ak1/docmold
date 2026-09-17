@@ -501,9 +501,12 @@
 /* 項目ごとに枠を分ける (topic_cards)。 */
 /* 枠への目次。トピックの枠と同じ体裁にそろえる（下の .dm-topic と同じ指定）。 */
 .dm-topic-index { margin: 0 0 10px; }
-.dm-topic-index__list {
+/* 行頭に通し番号が付くため、中点は置かない。字下げも戻す
+   （.dm-content--columns ul の指定より強くする必要がある）。 */
+.dm-content--columns .dm-topic-index__list {
+  list-style: none;
   margin: 0;
-  padding-left: 1.3em;
+  padding-left: 0;
   font-size: 13px;
 }
 .dm-topic-index__list li { margin: 2px 0; }
