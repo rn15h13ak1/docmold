@@ -86,9 +86,13 @@ def _partition(item: Any) -> tuple:
     notes: List[Any] = []
     for child in item.contents:
         name = getattr(child, "name", None)
-        if not head and not notes and name == "p":
-            head = list(child.contents)
-            continue
+        if not head and not notes:
+            # 要素の前後に入る改行。1 行目が見つかる前のものは読み飛ばす。
+            if name is None and not str(child).strip():
+                continue
+            if name == "p":
+                head = list(child.contents)
+                continue
         if notes or name in _NOTE_BLOCKS:
             notes.append(child)
         else:

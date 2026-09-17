@@ -313,3 +313,35 @@ class TestMixedList:
     def test_entries_only_list_drops_the_list_style(self):
         soup = run("entry_card", "<ul><li>AB-1｜処理中｜遅い</li><li>AB-2｜完了｜直った</li></ul>")
         assert "dm-entries" in soup.select_one("ul")["class"]
+
+
+class TestCommentsFromMarkdown:
+    """Markdown の書き方ごとの挙動（HTML を手で書くと気づけない差があるため）。"""
+
+    def convert(self, body: str, config) -> str:
+        from converter import convert_text
+
+        text = ("---\ntype: weekly3\ntitle: t\n---\n\n## トピックス\n\n### メモ\n\n"
+                + body
+                + "\n\n## 前週\n\n### バグ\n\n本文\n\n## 今週\n\n### バグ\n\n本文\n"
+                  "\n## 来週\n\n### バグ\n\n本文\n")
+        return convert_text(text, config).html
+
+    def test_nested_list_with_four_spaces_is_a_comment(self, config):
+        html = self.convert("- AB-1｜処理中｜遅い\n    - 3/19 に共有済み", config)
+        assert 'class="dm-entry__note"' in html
+
+    def test_indented_paragraph_is_a_comment(self, config):
+        html = self.convert("- AB-1｜処理中｜遅い\n\n    原因は調査中。", config)
+        # 項目の中身が段落で包まれる書き方。1 行目を欄に分けられること。
+        assert 'class="dm-entry__key"' in html
+        assert 'class="dm-entry__note"' in html
+
+    def test_items_separated_by_blank_lines_still_become_cards(self, config):
+        html = self.convert("- AB-1｜処理中｜遅い\n\n- AB-2｜完了｜直った", config)
+        assert html.count('class="dm-entry__key"') == 2
+
+    def test_two_spaces_do_not_nest(self, config):
+        html = self.convert("- AB-1｜処理中｜遅い\n  - 3/19 に共有済み", config)
+        # python-markdown は 2 文字では入れ子にしない（同じ階層の項目になる）。
+        assert 'class="dm-entry__note"' not in html
