@@ -89,6 +89,12 @@
   font-size: 13px;
 }
 
+/* セルの中の箇条書き。行が間延びしないよう、余白を詰める。 */
+.dm-content td > ul, .dm-content td > ol,
+.dm-table td > ul, .dm-table td > ol { margin: 0; padding-left: 1.2em; }
+.dm-content td > :first-child, .dm-table td > :first-child { margin-top: 0; }
+.dm-content td > :last-child, .dm-table td > :last-child { margin-bottom: 0; }
+
 .dm-meta { width: auto; min-width: 60%; margin: 0 0 24px; font-size: 14px; }
 .dm-meta th {
   background: var(--surface);

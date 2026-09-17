@@ -30,6 +30,7 @@ def list_table(soup: Any, meta: Dict[str, Any]) -> None:
 
     親の行が 1 列目、字下げした子の行が 2 列目以降。子の行は書いた順に列へ入り、
     ``状態: 未着手`` のように列名を書いた行だけはその列に入る。``-`` だけの行は空欄。
+    子の行の下にさらに字下げして書いた箇条書きは、そのセルの中に入る。
     列の数が合わない行は警告する（処理は続く）。
 
     目印の行が無い箇条書きには何もしない。
@@ -114,7 +115,7 @@ def _build_row(soup: Any, columns: List[str], item: Any,
             warn(meta, _where(columns, number)
                  + f"は {len(columns)} 列のところ {len(children) + 1} 個ありました")
             break
-        values[index] = [] if _is_empty_mark(rest) else rest
+        values[index] = _cell_nodes(rest)
 
     # 列名を書いていない行が短い場合は数え間違いの可能性が高い。
     if not named and len(children) + 1 < len(columns):
@@ -170,6 +171,25 @@ def _split_label(nodes: List[Any], columns: List[str]) -> Tuple[Optional[int], L
         if index and normalize(name) == label:
             return index, [match.group("rest")] + list(nodes[1:])
     return None, nodes
+
+
+def _cell_nodes(nodes: List[Any]) -> List[Any]:
+    """セルに入れるノードを整える。
+
+    さらに字下げして書いた箇条書きは、そのままセルの中に入れる。先頭のテキストが
+    ``-`` だけなら「中身は箇条書きだけ」とみなして落とす
+    （``-`` だけの行は Markdown が見出しの下線と読むため、この形でしか書けない）。
+    """
+    head: List[Any] = []
+    blocks: List[Any] = []
+    for node in nodes:
+        if blocks or getattr(node, "name", None) in ("ul", "ol"):
+            blocks.append(node)
+        else:
+            head.append(node)
+    if _is_empty_mark(head):
+        head = []
+    return head + blocks
 
 
 def _is_empty_mark(nodes: List[Any]) -> bool:

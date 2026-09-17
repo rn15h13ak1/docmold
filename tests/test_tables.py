@@ -127,3 +127,50 @@ class TestInDocument:
         # 変換後は普通の表なので、状態はバッジ、進捗はバーになる。
         assert 'class="dm-badge dm-badge--warn"' in document.html
         assert 'class="dm-progress__fill"' in document.html
+
+
+class TestListsInCells:
+    def test_nested_list_stays_in_the_cell(self):
+        table, warnings = build(
+            MARKER + "<ul><li>確認<ul><li>鈴木</li>"
+            "<li>次の 2 点<ul><li>A</li><li>B</li></ul></li></ul></li></ul>")
+        cell = table.select("tbody td")[2]
+        assert cell.get_text(strip=True).startswith("次の 2 点")
+        assert [li.get_text() for li in cell.select("ul li")] == ["A", "B"]
+        assert warnings == []
+
+    def test_dash_makes_the_cell_a_list_only(self):
+        table, warnings = build(
+            MARKER + "<ul><li>確認<ul><li>鈴木</li>"
+            "<li>-<ul><li>A</li><li>B</li></ul></li></ul></li></ul>")
+        cell = table.select("tbody td")[2]
+        # 「-」の文字は残さず、箇条書きだけを入れる。
+        assert cell.find("ul") is not None
+        assert "-" not in cell.get_text()
+        assert warnings == []
+
+    def test_dash_without_a_list_is_still_empty(self):
+        table, _ = build(MARKER + "<ul><li>確認<ul><li>-</li><li>完了</li></ul></li></ul>")
+        assert rows_of(table) == [["確認", "", "完了"]]
+
+    def test_cell_list_counts_as_one_column(self):
+        _, warnings = build(
+            MARKER + "<ul><li>確認<ul><li>鈴木</li>"
+            "<li>-<ul><li>A</li></ul></li></ul></li></ul>")
+        assert warnings == []
+
+    def test_from_markdown(self, config):
+        text = ("---\ntype: weekly3\ntitle: t\n開始日: 2026-03-09\n---\n\n"
+                "## トピックス\n\n### x\n\n"
+                "表: 作業｜担当｜補足\n\n"
+                "- 手順の最終確認\n    - 鈴木\n    - 次の 2 点\n"
+                "        - 3/19 に共有済み\n        - 再現条件を確認中\n"
+                "- 連絡体制の確認\n    - 田中\n    - -\n        - 窓口を 1 名増やす\n\n"
+                "## 前週\n\n### バグ\n\n本文\n\n## 今週\n\n### バグ\n\n本文\n"
+                "\n## 来週\n\n### バグ\n\n本文\n")
+        result = convert_text(text, config)
+        assert result.warnings == []
+        table = BeautifulSoup(result.html, "html.parser").select_one("table.dm-table")
+        cells = [cell for cell in table.select("tbody td")]
+        assert cells[2].select("ul li")[0].get_text() == "3/19 に共有済み"
+        assert cells[5].select("ul li")[0].get_text() == "窓口を 1 名増やす"
