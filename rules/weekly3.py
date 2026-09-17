@@ -454,3 +454,39 @@ _FULLWIDTH_DIGITS = str.maketrans("0123456789", "０１２３４５６７８９"
 
 def _topic_number(number: int) -> str:
     return f"{str(number).translate(_FULLWIDTH_DIGITS)}．"
+
+
+@rule("topic_index")
+def topic_index(soup: Any, meta: Dict[str, Any]) -> None:
+    """1 列にした節の先頭に、枠への目次を置く。
+
+    ``topic_cards`` が枠に分けた後で動かすこと（枠の見出しを拾うため）。
+    枠が 1 つだけの文書では置かない（並べる意味がないため）。
+    """
+    for section in soup.find_all("section"):
+        if "dm-section--full" not in (section.get("class") or []):
+            continue
+        holder = section.find("div", class_="dm-topics")
+        if holder is None:
+            continue
+
+        headings = [topic.find(HEADING_TAGS) for topic in holder.find_all("section", recursive=False)]
+        headings = [heading for heading in headings if heading is not None]
+        if len(headings) < 2:
+            continue
+
+        index = soup.new_tag("nav")
+        add_class(index, "dm-topic-index")
+        items = soup.new_tag("ul")
+        add_class(items, "dm-topic-index__list")
+        for number, heading in enumerate(headings, 1):
+            anchor = heading.get("id") or f"topic-{number}"
+            heading["id"] = anchor
+            item = soup.new_tag("li")
+            link = soup.new_tag("a", href=f"#{anchor}")
+            link.string = heading.get_text(strip=True)
+            item.append(link)
+            items.append(item)
+        index.append(items)
+        holder.insert_before(index)
+

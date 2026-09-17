@@ -8,6 +8,8 @@
 ## [Unreleased]
 
 ### Added
+- トピックスの先頭に、枠への目次を自動で置くようにした（`topic_index`）。
+  枠が 2 つ以上あるときだけ出す
 - 種類ごとに `file:` のリンクを通せるようにした（`profiles.<type>.allow_schemes`）。
   閉域でファイルサーバ上の資料を参照する運用のため。同梱の `weekly3` は既定で通す。
   `javascript` など script が動くものは、指定してもエラーにする

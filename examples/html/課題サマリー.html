@@ -499,6 +499,17 @@
 .dm-content--columns li { margin: 2px 0; }
 
 /* 項目ごとに枠を分ける (topic_cards)。 */
+/* 枠への目次。箇条書きで縦に並べる。 */
+.dm-topic-index { margin: 0 0 14px; }
+.dm-topic-index__list {
+  margin: 0;
+  padding-left: 1.3em;
+  font-size: 13px;
+}
+.dm-topic-index__list li { margin: 2px 0; }
+.dm-topic-index__list a { color: var(--accent); text-decoration: none; }
+.dm-topic-index__list a:hover { text-decoration: underline; }
+
 .dm-topics {
   /* 枠は縦に積む。横に並べると、行数の違う枠が凸凹に見えるため。 */
   display: grid;
@@ -839,7 +850,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 
   <main class="dm-content dm-content--columns">
 <section class="dm-section dm-section--h2 dm-section--full" data-heading-id="トピックス"><h2 id="トピックス">トピックス</h2>
-<div class="dm-topics"><section class="dm-topic"><h3 id="移行リハーサル"><span class="dm-topic__number">１．</span>移行リハーサル</h3>
+<nav class="dm-topic-index"><ul class="dm-topic-index__list"><li><a href="#移行リハーサル">１．移行リハーサル</a></li><li><a href="#文字化けの調査">２．文字化けの調査</a></li><li><a href="#定例の振り替え">３．定例の振り替え</a></li></ul></nav><div class="dm-topics"><section class="dm-topic"><h3 id="移行リハーサル"><span class="dm-topic__number">１．</span>移行リハーサル</h3>
 <p>3/18 に実施する。当日は問い合わせ窓口を 1 名増やす。</p>
 <h4 id="準備の進み具合">準備の進み具合</h4>
 

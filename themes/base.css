@@ -472,6 +472,17 @@
 .dm-content--columns li { margin: 2px 0; }
 
 /* 項目ごとに枠を分ける (topic_cards)。 */
+/* 枠への目次。箇条書きで縦に並べる。 */
+.dm-topic-index { margin: 0 0 14px; }
+.dm-topic-index__list {
+  margin: 0;
+  padding-left: 1.3em;
+  font-size: 13px;
+}
+.dm-topic-index__list li { margin: 2px 0; }
+.dm-topic-index__list a { color: var(--accent); text-decoration: none; }
+.dm-topic-index__list a:hover { text-decoration: underline; }
+
 .dm-topics {
   /* 枠は縦に積む。横に並べると、行数の違う枠が凸凹に見えるため。 */
   display: grid;

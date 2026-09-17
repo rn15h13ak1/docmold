@@ -397,3 +397,57 @@ class TestTopicNumbering:
         )
         # 本文の最初の見出しをタイトルに使うため、番号が混ざらないこと。
         assert result.title == "トピックス"
+
+
+class TestTopicIndex:
+    def full_section(self, body: str) -> str:
+        return ('<section class="dm-section dm-section--full"><h2>トピックス</h2>'
+                f'{body}</section>')
+
+    def run_both(self, body: str):
+        from bs4 import BeautifulSoup
+
+        from rules import apply_rules
+
+        soup = BeautifulSoup(self.full_section(body), "html.parser")
+        apply_rules(["topic_cards", "topic_index"], soup, {})
+        return soup
+
+    def test_index_lists_every_frame(self):
+        soup = self.run_both('<h3 id="a">A</h3><p>あ</p><h3 id="b">B</h3><p>い</p>')
+        links = soup.select(".dm-topic-index__list a")
+        # 枠に付く通し番号ごと拾う。
+        assert [link.get_text() for link in links] == ["１．A", "２．B"]
+        assert [link["href"] for link in links] == ["#a", "#b"]
+
+    def test_index_comes_before_the_frames(self):
+        soup = self.run_both('<h3 id="a">A</h3><p>あ</p><h3 id="b">B</h3><p>い</p>')
+        section = soup.select_one(".dm-section")
+        order = [tag.name for tag in section.find_all(["nav", "div"], recursive=False)]
+        assert order == ["nav", "div"]
+
+    def test_single_frame_gets_no_index(self):
+        soup = self.run_both('<h3 id="a">A</h3><p>あ</p>')
+        assert soup.select_one(".dm-topic-index") is None
+
+    def test_section_without_frames_gets_no_index(self):
+        soup = self.run_both("<p>連絡</p>")
+        assert soup.select_one(".dm-topic-index") is None
+
+    def test_missing_id_is_filled_in(self):
+        soup = self.run_both("<h3>A</h3><p>あ</p><h3>B</h3><p>い</p>")
+        links = soup.select(".dm-topic-index__list a")
+        assert [link["href"] for link in links] == ["#topic-1", "#topic-2"]
+        assert soup.select(".dm-topic h3")[0]["id"] == "topic-1"
+
+    def test_numbers_are_included(self, config):
+        from converter import convert_text
+
+        result = convert_text(
+            "---\ntype: weekly3\ntitle: t\n---\n\n"
+            "## トピックス\n\n### リハーサル\n\n本文\n\n### 調査\n\n本文\n\n"
+            "## 前週\n\n### バグ\n\n本文\n\n## 今週\n\n### バグ\n\n本文\n"
+            "\n## 来週\n\n### バグ\n\n本文\n",
+            config,
+        )
+        assert '<a href="#リハーサル">１．リハーサル</a>' in result.html
