@@ -27,6 +27,8 @@ DEFAULTS: Dict[str, List[str]] = {
     # 週次報告
     "status_column": ["状態", "ステータス", "status", "進行", "対応状況"],
     "progress_column": ["進捗", "進捗率", "達成率", "progress", "完了率"],
+    # 箇条書きを表にする目印 (list_table)
+    "table_marker": ["表", "テーブル", "table"],
     # 期間の組み立て (period_range)
     "period": ["期間", "対象期間", "period"],
     "period_start": ["開始日", "起算日", "start", "start_date"],

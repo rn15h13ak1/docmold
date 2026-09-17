@@ -99,5 +99,5 @@ def rule_descriptions() -> List[tuple]:
 
 # ルール関数の登録。import した時点で RULES が埋まる。
 from rules import (  # noqa: E402,F401
-    common, incident, minutes, period, procedure, spec, weekly, weekly3,
+    common, incident, minutes, period, procedure, spec, tables, weekly, weekly3,
 )

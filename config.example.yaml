@@ -88,6 +88,7 @@
 #   status_ok: [完了, 済, 対応済, クローズ, done, closed, ok, 正常, 成功, 解決済]
 #   status_warn: [進行中, 対応中, 作業中, 保留, 確認中, wip, in progress, doing, 遅延, 注意, warn, warning, 再オープン, reopened, 中]
 #   step: [手順, step]
+#   table_marker: [表, テーブル, table]
 #   time_column: [時刻, 日時, 時間, time, タイムスタンプ]
 #   timeline: [時系列, 経過, タイムライン, timeline, 対応経過]
 #   todo: [todo, to do, アクション, 宿題, 持ち帰り, action item]
