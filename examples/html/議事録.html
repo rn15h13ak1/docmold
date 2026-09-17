@@ -97,7 +97,9 @@
 
 .dm-content table, .dm-table {
   border-collapse: collapse;
-  width: 100%;
+  /* 列の幅は中身に合わせる。幅いっぱいに広げると、短い列まで間延びして読みにくい。 */
+  width: auto;
+  max-width: 100%;
   margin: 1em 0;
   font-size: 14px;
 }
