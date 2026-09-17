@@ -442,6 +442,17 @@
   border: 0;
   border-left: 3px solid var(--accent-weak);
 }
+
+/* さらに深い見出し。見出し 4 より目立たせない（既定の大きさのままだと、
+   浅い見出しより大きく見えて段が逆転する）。 */
+.dm-content--columns .dm-topic h5, .dm-content--columns .dm-topic h6,
+.dm-content--columns .dm-column h5, .dm-content--columns .dm-column h6 {
+  margin: 12px 0 4px;
+  padding: 0;
+  font-size: 13px;
+  color: var(--muted);
+  border: 0;
+}
 .dm-column--empty { background: transparent; border-style: dashed; }
 .dm-column__empty { margin: 0; color: var(--muted); }
 
