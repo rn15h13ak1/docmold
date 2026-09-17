@@ -257,3 +257,24 @@ class TestMetaTypos:
     def test_strict_turns_it_into_a_failure(self, config):
         """--strict なら取りこぼさない（cli 側の挙動は test_cli で検証）。"""
         assert len(self._warnings(config, "type: minutes\ntitel: 打ち間違い\n")) == 1
+
+
+class TestLinkSchemes:
+    """本文に書いた file: のリンクを、種類ごとに通すか落とすか。"""
+
+    BODY = ("## トピックス\n\n### x\n\n- [手順書](file:///C:/docs/a.xlsx)\n\n"
+            "## 前週\n\n### バグ\n\n本文\n\n## 今週\n\n### バグ\n\n本文\n"
+            "\n## 来週\n\n### バグ\n\n本文\n")
+
+    def test_weekly3_keeps_file_links(self, config):
+        result = convert_text(f"---\ntype: weekly3\ntitle: t\n---\n\n{self.BODY}", config)
+        assert 'href="file:///C:/docs/a.xlsx"' in result.html
+        assert result.warnings == []
+
+    def test_other_types_drop_file_links(self, config):
+        result = convert_text(
+            "---\ntype: minutes\ntitle: t\n---\n\n## x\n\n- [手順書](file:///C:/docs/a.xlsx)\n",
+            config,
+        )
+        assert "file:///C:/docs/a.xlsx" not in result.html
+        assert "本文の HTML を 1 箇所" in result.warnings[0]

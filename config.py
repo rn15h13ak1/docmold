@@ -15,7 +15,7 @@ from __future__ import annotations
 import copy
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Mapping, Optional
+from typing import Any, Dict, List, Mapping, Optional, Sequence
 
 try:
     import yaml
@@ -44,6 +44,32 @@ SANITIZE_MODES = ("strict", "none")
 
 #: トップレベルで指定が無いときの既定。安全側に倒す。
 DEFAULT_SANITIZE = "strict"
+
+
+def parse_allow_schemes(value: Any, where: str) -> List[str]:
+    """``allow_schemes`` を検証して小文字の並びにする。
+
+    通せるのは ``sanitize.CONFIGURABLE_SCHEMES`` だけ。``javascript`` のように
+    script が動くものは、書かれていてもエラーにする（意図が危ういため黙って捨てない）。
+    """
+    from sanitize import CONFIGURABLE_SCHEMES
+
+    if value is None:
+        return []
+    if isinstance(value, str) or not isinstance(value, Sequence):
+        raise ConfigError(f"{where}.allow_schemes: リストで指定してください (実際: {value!r})")
+
+    names = []
+    for item in value:
+        name = str(item).strip().lower().rstrip(":")
+        if name not in CONFIGURABLE_SCHEMES:
+            raise ConfigError(
+                f"{where}.allow_schemes: {name!r} は通せません"
+                f"（指定できるのは {' / '.join(CONFIGURABLE_SCHEMES)}）"
+            )
+        if name not in names:
+            names.append(name)
+    return names
 
 
 def parse_sanitize(value: Any, where: str) -> str:
@@ -212,11 +238,13 @@ class Profile:
     watermark: Optional[str] = None
     mermaid: MermaidSettings = field(default_factory=MermaidSettings)
     sanitize: str = DEFAULT_SANITIZE
+    allow_schemes: List[str] = field(default_factory=list)
     description: str = ""
 
     _KNOWN_KEYS = frozenset({
         "template", "theme", "toc", "rules", "extensions",
-        "meta_header", "print", "watermark", "mermaid", "sanitize", "description",
+        "meta_header", "print", "watermark", "mermaid", "sanitize",
+        "allow_schemes", "description",
     })
 
     @classmethod
@@ -253,6 +281,7 @@ class Profile:
                 parse_sanitize(value["sanitize"], where)
                 if "sanitize" in value else default_sanitize
             ),
+            allow_schemes=parse_allow_schemes(value.get("allow_schemes"), where),
             description=str(value.get("description", "")),
         )
 

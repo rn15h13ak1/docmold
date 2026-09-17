@@ -170,3 +170,30 @@ class TestConversion:
     def test_document_links_still_rewritten(self):
         html = convert_text("[設計書](設計書.md)\n", config_with()).html
         assert 'href="設計書.html"' in body(html)
+
+
+class TestAllowedSchemes:
+    def soup_of(self, html: str):
+        from bs4 import BeautifulSoup
+
+        return BeautifulSoup(html, "html.parser")
+
+    def test_file_is_dropped_by_default(self):
+        soup = self.soup_of('<a href="file:///C:/a.xlsx">x</a>')
+        assert sanitize(soup) == 1
+        assert soup.a.get("href") is None
+
+    def test_file_can_be_allowed(self):
+        soup = self.soup_of('<a href="file:///C:/a.xlsx">x</a>')
+        assert sanitize(soup, ["file"]) == 0
+        assert soup.a["href"] == "file:///C:/a.xlsx"
+
+    def test_script_schemes_are_never_allowed(self):
+        soup = self.soup_of('<a href="javascript:alert(1)">x</a>')
+        # 指定されても通さない。設定側でも弾くが、ここでも守る。
+        assert sanitize(soup, ["javascript", "file"]) == 1
+        assert soup.a.get("href") is None
+
+    def test_other_schemes_are_still_dropped(self):
+        soup = self.soup_of('<a href="vbscript:x">x</a><img src="data:text/html,x">')
+        assert sanitize(soup, ["file"]) == 2

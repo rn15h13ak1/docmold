@@ -119,7 +119,7 @@ def convert_text(text: str, config: Config, *,
     # 生 HTML の絞り込みは、本文だけが対象。ルール層やテンプレートが作る要素は
     # docmold 自身の生成物なので、この後に組み立てる。
     if profile.sanitize == "strict":
-        removed = sanitize(soup)
+        removed = sanitize(soup, profile.allow_schemes)
         if removed:
             warnings.append(
                 f"本文の HTML を {removed} 箇所ほど除きました"

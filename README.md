@@ -402,6 +402,7 @@ Markdown の仕様では、`.md` に直接書いた HTML はそのまま出力�
 | `<img src="図.png" onerror="alert(1)">` | `onerror` だけ削除（画像は残る） |
 | `<a href="javascript:...">押す</a>` | リンクを無効化（文字は残る） |
 | `<iframe>` `<form>` `<svg>` | 削除 |
+| `<a href="file:///…">` | リンクを無効化（`allow_schemes` で通せる） |
 | `<div style="color:red">` | `style` を削除（文字は残る） |
 | `<br>` `<details>` `<abbr>` | **そのまま残る** |
 | `**強調**` `[リンク](設計書.md)` などの Markdown 記法 | **影響なし** |
@@ -428,6 +429,29 @@ profiles:
 ```
 
 種類ごとの指定が、全体の既定より優先されます。
+
+#### ファイルサーバへのリンクを通す（`allow_schemes`）
+
+`file:` のリンクは既定で無効化されます（配った先の手元のファイルを指さないため）。
+**閉域で配る前提の種類だけ通す**こともできます。
+
+```yaml
+profiles:
+  weekly3:
+    allow_schemes: [file]
+```
+
+```markdown
+- [手順書](file:///C:/docs/手順.xlsx)
+```
+
+同梱の `weekly3` は既定で `file` を通します。ほかの種類は落とします。
+
+- 通せるのは `file` / `about` だけです。`javascript` などは書いてもエラーになります。
+- `<file:///…>` の書き方は**使えません**。python-markdown が `file:` を自動リンクの
+  対象にしておらず、HTML のタグとして読まれて消えます。角括弧で書いてください。
+- リンク先が HTML と同じ場所にあるなら、相対パス（`[手順書](手順.xlsx)`）や
+  UNC（`[共有](//server/share/手順.xlsx)`）の方が確実です。
 
 > 許可リストは `sanitize.py` にあります。ルール層やテンプレートが作る要素
 > （チェックボックス、コピーボタン、Mermaid の読み込み）はサニタイズの後に

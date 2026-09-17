@@ -14,7 +14,7 @@ Markdown の仕様では生の HTML はそのまま通る。docmold の出力は
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, FrozenSet
+from typing import Any, Dict, FrozenSet, Iterable
 
 #: 残す要素。Markdown（extra / admonition / codehilite / toc）が生成するものと、
 #: 文書内で手書きされても無害なものを含む。
@@ -62,21 +62,31 @@ TAG_ATTRS: Dict[str, FrozenSet[str]] = {
 #: 表の桁揃えは Markdown が style で出すため、この形だけ通す。
 ALLOWED_STYLE_RE = re.compile(r"\A\s*text-align:\s*(left|center|right)\s*;?\s*\Z", re.IGNORECASE)
 
-#: URL として危険なスキーム。相対パス（設計書.md）はスキームを持たないので通る。
-DANGEROUS_SCHEME_RE = re.compile(r"\A\s*(javascript|vbscript|data|file|about)\s*:", re.IGNORECASE)
+#: URL として落とすスキーム。相対パス（設計書.md）はスキームを持たないので通る。
+BLOCKED_SCHEMES = ("javascript", "vbscript", "data", "file", "about")
+
+#: 設定で通せるようにするスキーム。script が動くものは含めない。
+CONFIGURABLE_SCHEMES = ("file", "about")
+
+DANGEROUS_SCHEME_RE = re.compile(
+    r"\A\s*(" + "|".join(BLOCKED_SCHEMES) + r")\s*:", re.IGNORECASE)
 
 #: 画像の埋め込みに使う data URI だけは例外として通す。
 SAFE_DATA_URI_RE = re.compile(r"\Adata:image/(png|jpe?g|gif|svg\+xml|webp|bmp|x-icon);", re.IGNORECASE)
 
 
-def sanitize(soup: Any) -> int:
+def sanitize(soup: Any, allow_schemes: Iterable[str] = ()) -> int:
     """本文を安全な範囲に絞る。落とした箇所の数を返す。
 
     - 許可していない要素は、中身を残して外す（``<font>`` など）
     - ``script`` のように中身ごと消したほうがよいものは、まとめて削除する
     - 許可していない属性（``onerror`` ``style`` など）は外す
     - ``javascript:`` などのスキームを持つ ``href`` / ``src`` は外す
+
+    ``allow_schemes`` に挙げたスキームは落とさない（``file`` など）。
+    ``javascript`` のように script が動くものは、ここに渡しても通さない。
     """
+    pattern = _scheme_pattern(allow_schemes)
     removed = 0
 
     for tag in soup.find_all(list(DROP_TAGS)):
@@ -88,12 +98,22 @@ def sanitize(soup: Any) -> int:
             tag.unwrap()
             removed += 1
             continue
-        removed += _clean_attributes(tag)
+        removed += _clean_attributes(tag, pattern)
 
     return removed
 
 
-def _clean_attributes(tag: Any) -> int:
+def _scheme_pattern(allow_schemes: Iterable[str]) -> Any:
+    """通すスキームを除いた、落とす対象の正規表現を返す。"""
+    allowed = {str(name).strip().lower() for name in allow_schemes}
+    allowed &= set(CONFIGURABLE_SCHEMES)
+    blocked = [name for name in BLOCKED_SCHEMES if name not in allowed]
+    if len(blocked) == len(BLOCKED_SCHEMES):
+        return DANGEROUS_SCHEME_RE
+    return re.compile(r"\A\s*(" + "|".join(blocked) + r")\s*:", re.IGNORECASE)
+
+
+def _clean_attributes(tag: Any, pattern: Any = DANGEROUS_SCHEME_RE) -> int:
     allowed = GLOBAL_ATTRS | TAG_ATTRS.get(tag.name, frozenset())
     removed = 0
 
@@ -108,7 +128,7 @@ def _clean_attributes(tag: Any) -> int:
 
     for name in ("href", "src"):
         value = str(tag.get(name, "")).strip()
-        if value and DANGEROUS_SCHEME_RE.match(value) and not SAFE_DATA_URI_RE.match(value):
+        if value and pattern.match(value) and not SAFE_DATA_URI_RE.match(value):
             del tag[name]
             removed += 1
 

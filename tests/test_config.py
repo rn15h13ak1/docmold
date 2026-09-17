@@ -108,3 +108,28 @@ class TestTocSettings:
     def test_mapping_form(self, config):
         toc = config.profile("spec").toc
         assert (toc.enabled, toc.depth, toc.numbering) == (True, 3, True)
+
+
+class TestAllowSchemes:
+    def test_default_is_empty(self, config):
+        assert config.profile("minutes").allow_schemes == []
+
+    def test_file_is_accepted(self, make_config):
+        cfg = load_config(str(make_config(
+            "profiles:\n  memo:\n    allow_schemes: [file]\n")))
+        assert cfg.profile("memo").allow_schemes == ["file"]
+
+    def test_trailing_colon_and_case_are_tolerated(self, make_config):
+        cfg = load_config(str(make_config(
+            "profiles:\n  memo:\n    allow_schemes: ['FILE:']\n")))
+        assert cfg.profile("memo").allow_schemes == ["file"]
+
+    def test_script_scheme_is_refused(self, make_config):
+        with pytest.raises(ConfigError, match="通せません"):
+            load_config(str(make_config(
+                "profiles:\n  memo:\n    allow_schemes: [javascript]\n")))
+
+    def test_string_is_refused(self, make_config):
+        with pytest.raises(ConfigError, match="リストで指定"):
+            load_config(str(make_config(
+                "profiles:\n  memo:\n    allow_schemes: file\n")))

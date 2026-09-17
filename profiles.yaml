@@ -124,3 +124,5 @@ profiles:
     rules: [period_range, column_periods, list_table, count_summary, entry_card,
             status_badge, progress_bar, group_columns, topic_cards]
     meta_header: [期間, 報告者]
+    # ファイルサーバ上の資料へリンクできるようにする。閉域で配る前提の種類のみ。
+    allow_schemes: [file]
