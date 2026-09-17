@@ -452,6 +452,12 @@
 .dm-count__label { color: var(--muted); }
 .dm-count__value { font-family: var(--mono); font-weight: bold; color: var(--accent); }
 
+/* 列は幅が限られるため、箇条書きの字下げを詰める。ブラウザ既定の 40px だと
+   折り返しが増えて読みにくくなる。 */
+.dm-content--columns ul { padding-left: 1.3em; }
+.dm-content--columns ol { padding-left: 1.7em; }
+.dm-content--columns li { margin: 2px 0; }
+
 /* 項目ごとに枠を分ける (topic_cards)。 */
 .dm-topics {
   /* 枠は縦に積む。横に並べると、行数の違う枠が凸凹に見えるため。 */
