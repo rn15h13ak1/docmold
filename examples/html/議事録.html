@@ -389,9 +389,8 @@
 }
 .dm-group { margin: 0 0 22px; }
 /* まとまりの見出しは帯にする。どこからどの見出しの内容かを、
-   枠線ではなく面で示すため。1 列の節の見出しも同じ帯に揃える。 */
-.dm-content--columns .dm-group__title,
-.dm-content--columns > .dm-section--full > h2 {
+   枠線ではなく面で示すため。 */
+.dm-content--columns .dm-group__title {
   margin: 0 0 10px;
   padding: 5px 12px;
   font-size: 15px;
@@ -399,6 +398,19 @@
   background: var(--accent);
   border: 0;
   border-radius: 3px;
+}
+
+/* 1 列の節 (トピックス) の見出しは帯にしない。中の枠が濃い帯を持つため、
+   帯を重ねると段の上下が読み取れなくなる。 */
+.dm-content--columns > .dm-section--full > h2 {
+  margin: 0 0 12px;
+  padding: 0 0 6px;
+  font-size: 18px;
+  color: var(--accent);
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid var(--accent);
+  border-radius: 0;
 }
 .dm-group__columns {
   display: grid;
@@ -441,15 +453,14 @@
   border-radius: 0 3px 3px 0;
 }
 
-/* トピックスの枠の中のサブ項目。枠の見出しより淡い帯にして、段を示す。 */
+/* サブ項目は淡い帯。左端は本文とそろえる（帯の内側に字下げを作らない）。 */
 .dm-content--columns .dm-topic h4 {
-  margin: 14px 0 6px;
-  padding: 3px 10px;
+  margin: 14px -14px 6px;
+  padding: 3px 14px;
   font-size: 13px;
   color: var(--accent);
-  background: var(--surface);
+  background: var(--accent-weak);
   border: 0;
-  border-radius: 3px;
 }
 
 /* さらに深い見出し。見出し 4 より目立たせない（既定の大きさのままだと、
@@ -501,18 +512,17 @@
   padding: 0 14px 10px;
   overflow: hidden;
 }
-/* 枠の見出しも帯にする。枠線だけだと、どこで切り替わるかが読み取りにくいため。 */
+/* 枠の見出しは濃い帯。段が下がるほど帯を淡くして、上下関係を色の濃さで示す。 */
 .dm-content--columns .dm-topic > h3 {
   margin: 0 -14px 10px;
   padding: 5px 14px;
   font-size: 14px;
-  color: var(--accent);
-  background: var(--accent-weak);
+  color: var(--accent-text);
+  background: var(--accent);
   border: 0;
-  border-bottom: 1px solid var(--border);
 }
 /* 通し番号。見出しの文言と地続きに見えないよう、少し離して弱く見せる。 */
-.dm-topic__number { margin-right: 2px; opacity: 0.75; font-variant-numeric: tabular-nums; }
+.dm-topic__number { margin-right: 2px; opacity: 0.85; font-variant-numeric: tabular-nums; }
 
 .dm-topic > :first-child { margin-top: 0; }
 .dm-topic > :last-child { margin-bottom: 0; }
