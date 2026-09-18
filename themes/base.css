@@ -74,16 +74,16 @@
   margin: 1em 0;
   font-size: 14px;
 }
-/* 余った幅は最後の列に持たせる。短い語が並ぶ列を広げても読みやすくならないため。
-   最後より前の列は、折り返さずに済む幅を下限にして潰れないようにする。 */
-.dm-content table:not(.dm-meta) th:last-child,
-.dm-content table:not(.dm-meta) td:last-child,
-.dm-table:not(.dm-meta) th:last-child,
-.dm-table:not(.dm-meta) td:last-child { width: 100%; }
+/* 列の幅は内容量に応じて配分する。最後の列を特別扱いすると、最後より前の列にも
+   文章が入る表で最後の列が潰れ、1 文字ずつ縦に積まれてしまうため。
+   見出しだけ折り返さずに済む幅を保ち、ラベルが「項／目」と割れるのを防ぐ。
+   min-width は、どの列も 1 文字ずつ縦積みにならないための下限。 */
 .dm-content table:not(.dm-meta) th:not(:last-child),
-.dm-content table:not(.dm-meta) td:not(:last-child),
-.dm-table:not(.dm-meta) th:not(:last-child),
-.dm-table:not(.dm-meta) td:not(:last-child) { white-space: nowrap; }
+.dm-table:not(.dm-meta) th:not(:last-child) { white-space: nowrap; }
+.dm-content table:not(.dm-meta) th,
+.dm-content table:not(.dm-meta) td,
+.dm-table:not(.dm-meta) th,
+.dm-table:not(.dm-meta) td { min-width: 4.5em; }
 .dm-content th, .dm-content td, .dm-table th, .dm-table td {
   border: 1px solid var(--border);
   padding: 6px 10px;
