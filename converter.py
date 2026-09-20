@@ -14,13 +14,13 @@ from __future__ import annotations
 
 import difflib
 import re
+import unicodedata
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 try:
     import markdown
-    from markdown.extensions.toc import slugify_unicode
 except ImportError as e:  # pragma: no cover - 依存が無い環境向けの案内
     raise ImportError("Markdown is required. Install with: pip install markdown") from e
 
@@ -177,17 +177,72 @@ def convert_file(path: Path, config: Config, *,
     return convert_text(text, config, type_override=type_override, source_path=path)
 
 
+#: 見出しの id に残す文字の一般カテゴリ。文字・結合文字・十進数字・数値文字・
+#: 連結用の記号（``_`` など）。GitHub が残すものと同じ範囲。
+_SLUG_KEEP_CATEGORIES = frozenset({"Nd", "Nl", "Pc"})
+
+
+def github_slug(value: str, separator: str = "-") -> str:
+    r"""見出しの id を GitHub と同じ規則で作る。
+
+    同じ ``.md`` を GitHub でも HTML でも読む使い方では、文書内リンク
+    ``[概要](#概要)`` が両方で成立してほしい。id の作り方が食い違うと、
+    GitHub に合わせて書けば HTML で切れ、HTML に合わせれば GitHub で切れる。
+
+    GitHub（github-slugger）の規則は 3 手だけで、**空白をまとめない**のが要。
+
+    1. 小文字にする
+    2. 文字・数字・結合文字・連結記号・``-``・半角空白**以外**を取り除く
+    3. 残った半角空白をそれぞれ ``separator`` に置き換える
+
+    記号の前後に空白があると、記号が消えて空白が 2 つ隣り合い、``--`` になる
+    （``常設の指示 — 利用する`` → ``常設の指示--利用する``）。Python-Markdown の
+    ``slugify`` はここを 1 つに畳むため、食い違っていた。
+
+    **全角空白は半角空白ではない**ため、2 で取り除かれ、区切りにはならない
+    （``A-6 世代管理　実装仕様書`` → ``a-6-世代管理実装仕様書``）。日本語の見出しで
+    よく使われるので、``\s`` でまとめて扱うと GitHub と食い違う。
+    """
+    kept = []
+    for char in value.lower():
+        category = unicodedata.category(char)
+        if char == "-" or char == " " or category[0] in ("L", "M") or category in _SLUG_KEEP_CATEGORIES:
+            kept.append(char)
+    return "".join(kept).replace(" ", separator)
+
+
+def _slugifier():
+    """1 文書分の slugify。同じ見出しが 2 度目からは ``-1`` ``-2`` と続き番号になる。
+
+    GitHub も同じ規則で重複を避ける（github-slugger が出現回数を数えている）。
+    Python-Markdown の重複回避は ``_1`` を足すため、``## 概要`` が 2 つある文書で
+    食い違っていた。数えるのは 1 文書の中だけなので、変換ごとに作り直す。
+    """
+    seen: Dict[str, int] = {}
+
+    def slugify(value: str, separator: str) -> str:
+        base = github_slug(value, separator)
+        slug = base
+        while slug in seen:
+            seen[base] += 1
+            slug = f"{base}{separator}{seen[base]}"
+        seen[slug] = 0
+        return slug
+
+    return slugify
+
+
 def _extension_configs(profile: Profile) -> Dict[str, Dict[str, Any]]:
     configs: Dict[str, Dict[str, Any]] = {
         # CDN も外部 CSS も使えない前提なので、色は Pygments の生成 CSS で埋め込む。
         "codehilite": {"guess_lang": False, "noclasses": False},
+        # 見出しの id は GitHub と同じ規則で作る（github_slug のコメントを参照）。
         # 既定の slugify は日本語見出しを空にしてしまい、アンカーが _1 / _2 になる。
-        # 見出し文字列を残す slugify_unicode を使い、他文書からもリンクできるようにする。
         "toc": {
             "toc_depth": profile.toc.depth,
             "anchorlink": False,
             "permalink": False,
-            "slugify": slugify_unicode,
+            "slugify": _slugifier(),
         },
     }
     return {name: cfg for name, cfg in configs.items() if name in profile.markdown_extensions}

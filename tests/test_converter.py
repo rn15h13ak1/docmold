@@ -5,7 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from converter import ConversionError, convert_file, convert_text, resolve_profile
+from converter import (ConversionError, convert_file, convert_text, github_slug,
+                       resolve_profile)
 
 
 class TestProfileResolution:
@@ -102,6 +103,55 @@ class TestToc:
         html = convert_text(source, config).html
         toc = html[html.index('class="dm-toc"'):html.index("</nav>", html.index('class="dm-toc"'))]
         assert "深い見出し" not in toc
+
+
+class TestGithubSlug:
+    """見出しの id が GitHub と一致すること。
+
+    期待値は github-slugger 2.0.0 の実測値。同じ .md を GitHub でも HTML でも
+    読むため、文書内リンクが両方で成立する必要がある。
+    """
+
+    @pytest.mark.parametrize("heading, expected", [
+        # 記号が消えて空白が隣り合う。GitHub は畳まないのでハイフン 2 つになる。
+        ("常設の指示 — 利用するツールの共通指示欄に登録する",
+         "常設の指示--利用するツールの共通指示欄に登録する"),
+        ("Hello  World", "hello--world"),
+        # 全角空白は半角空白ではないため、区切りにならず取り除かれる。
+        ("A-6 世代管理　実装仕様書", "a-6-世代管理実装仕様書"),
+        ("第1編 方式設計", "第1編-方式設計"),
+        ("概要 (説明)", "概要-説明"),
+        ("入力/出力の仕様", "入力出力の仕様"),
+        ("設計方針・制約", "設計方針制約"),
+        ("API の使い方", "api-の使い方"),
+        ("1. はじめに", "1-はじめに"),
+        ("ツール比較: docmold と pandoc", "ツール比較-docmold-と-pandoc"),
+        ("用語（定義）", "用語定義"),
+        ("Q&A", "qa"),
+        # 長音符と繰り返し記号は文字として残す。
+        ("サーバーの状態　々", "サーバーの状態々"),
+    ])
+    def test_matches_github(self, heading, expected):
+        assert github_slug(heading) == expected
+
+    def test_duplicate_headings_get_github_numbering(self, config):
+        """同じ見出しが続いたときの番号も GitHub と同じ（``-1`` であって ``_1`` ではない）。"""
+        source = "---\ntype: minutes\n---\n\n## 概要\n\n## 別の見出し\n\n## 概要\n"
+        html = convert_text(source, config).html
+        assert 'id="概要"' in html and 'id="概要-1"' in html
+        assert "概要_1" not in html
+
+    def test_numbering_does_not_leak_between_documents(self, config):
+        """重複の数え直しは 1 文書の中だけ。次の文書で ``-1`` から始めない。"""
+        source = "---\ntype: minutes\n---\n\n## 概要\n"
+        assert 'id="概要"' in convert_text(source, config).html
+        assert "概要-1" not in convert_text(source, config).html
+
+    def test_heading_id_uses_the_rule(self, config):
+        source = "---\ntype: minutes\n---\n\n## 常設の指示 — 登録する\n"
+        html = convert_text(source, config).html
+        assert 'id="常設の指示--登録する"' in html
+        assert 'href="#常設の指示--登録する"' in html
 
 
 class TestTocText:
