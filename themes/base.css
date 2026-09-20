@@ -207,6 +207,18 @@
 .dm-callout--decision { border-left-color: var(--accent); background: var(--accent-weak); }
 .dm-callout--rollback { border-left-color: var(--danger); background: #fdecea; }
 .dm-callout--rollback .dm-callout__title { color: var(--danger); }
+/* 引用の記法で書くコールアウト（callout_blockquote）の系統。背景は本文と同じ
+   surface のままにし、左の縁とタイトルの色だけで種別を示す。1 ページに何十個も
+   並ぶため、色面が増えると本文より枠のほうが目立ってしまう。 */
+.dm-callout--ok     { border-left-color: var(--ok); }
+.dm-callout--warn   { border-left-color: var(--warn); }
+.dm-callout--danger { border-left-color: var(--danger); }
+.dm-callout--ok .dm-callout__title     { color: var(--ok); }
+.dm-callout--warn .dm-callout__title   { color: var(--warn); }
+.dm-callout--danger .dm-callout__title { color: var(--danger); }
+/* 折りたたみ（[!note]- / +）。つまみは見出しと同じ体裁のまま、開閉できると分かる形にする。 */
+details.dm-callout > .dm-callout__title { cursor: pointer; margin: 0; }
+details.dm-callout[open] > .dm-callout__title { margin-bottom: 6px; }
 
 /* python-markdown の admonition (!!! note / warning / danger) */
 .admonition {
