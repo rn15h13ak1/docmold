@@ -105,6 +105,26 @@ class TestToc:
         assert "深い見出し" not in toc
 
 
+class TestTablePipes:
+    r"""表のセルのコードに書いた ``\|`` が、GitHub と同じく ``|`` になること。"""
+
+    def test_escaped_pipe_in_code_is_unescaped(self, config):
+        source = "# T\n\n| 記述 | 結果 |\n| --- | --- |\n| `\\| ---: \\|` | 影響なし |\n"
+        html = convert_text(source, config).html
+        assert "<code>| ---: |</code>" in html
+        assert "\\|" not in html
+
+    def test_row_is_not_split_by_the_pipe(self, config):
+        source = "# T\n\n| 記述 | 結果 |\n| --- | --- |\n| `a \\| b` | x |\n"
+        html = convert_text(source, config).html
+        assert html.count("<td") == 2
+
+    def test_code_outside_a_table_is_left_alone(self, config):
+        """表の外では GitHub もエスケープを外さない（コードは原文のまま）。"""
+        html = convert_text("# T\n\n本文の `a \\| b`。\n", config).html
+        assert "<code>a \\| b</code>" in html
+
+
 class TestGithubSlug:
     """見出しの id が GitHub と一致すること。
 

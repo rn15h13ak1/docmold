@@ -126,6 +126,7 @@ def convert_text(text: str, config: Config, *,
                 f"（sanitize: strict。素通しにするには sanitize: false）"
             )
 
+    _unescape_table_pipes(soup)
     warnings.extend(_rewrite_document_links(soup))
     _wrap_sections(soup)
     apply_rules(profile.rules, soup, meta)
@@ -277,6 +278,23 @@ def _known_meta_keys(profile: Profile) -> set:
         *keywords.get("index_date"),
         *keywords.get("severity"),
     }
+
+
+def _unescape_table_pipes(soup: BeautifulSoup) -> None:
+    r"""表のセルのコードに残る ``\|`` を ``|`` に戻す。
+
+    Markdown の表はセルの区切りをインラインコードより先に判定するため、コードの中でも
+    パイプは ``\|`` と書かないと列が割れる。ところがコードの中は元の文字をそのまま出す
+    決まりなので、エスケープが外れずバックスラッシュが残る。GitHub は表の中に限って
+    先に外すため、同じ ``.md`` が両方で違って見えていた。
+
+    コードの外は Markdown が外してくれるので、ここで見るのはコードの中だけでよい。
+    """
+    for cell in soup.find_all(["td", "th"]):
+        for code in cell.find_all("code"):
+            for text in code.find_all(string=True):
+                if r"\|" in text:
+                    text.replace_with(text.replace(r"\|", "|"))
 
 
 def _rewrite_document_links(soup: BeautifulSoup) -> List[str]:
