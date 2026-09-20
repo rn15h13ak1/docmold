@@ -21,6 +21,24 @@
       <thead>
         <tr><th>タイトル</th><th>種類</th><th>日付</th><th>ファイル</th></tr>
       </thead>
+      {# 入力が複数のディレクトリにまたがるときは、ディレクトリごとに区切って
+         見出し行を挟む。索引から文書セットの構成が読み取れるようにするため。
+         1 つに収まっているときは従来どおり 1 続きの表にする。 #}
+      {% if grouped %}
+        {% for group, rows in entries | groupby("group") %}
+      <tbody>
+        <tr class="dm-index__group"><th colspan="4">{{ group or "（直下）" }}</th></tr>
+          {% for entry in rows %}
+        <tr>
+          <td><a href="{{ entry.href }}">{{ entry.title }}</a></td>
+          <td><span class="dm-badge dm-badge--default">{{ entry.type }}</span></td>
+          <td class="dm-index__date">{{ entry.date }}</td>
+          <td class="dm-index__path">{{ entry.name }}</td>
+        </tr>
+          {% endfor %}
+      </tbody>
+        {% endfor %}
+      {% else %}
       <tbody>
         {% for entry in entries %}
         <tr>
@@ -31,6 +49,7 @@
         </tr>
         {% endfor %}
       </tbody>
+      {% endif %}
     </table>
   </main>
   <footer class="dm-footer"><span class="dm-footer__type">docmold index</span></footer>

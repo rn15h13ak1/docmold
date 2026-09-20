@@ -661,3 +661,12 @@ pre.mermaid svg { max-width: 100%; height: auto; }
 
 .dm-index__path { color: var(--muted); font-family: var(--mono); font-size: 12px; }
 .dm-index__date { white-space: nowrap; font-variant-numeric: tabular-nums; }
+/* 入力のディレクトリごとの見出し。トピックの枠見出しと同じ濃い帯にして、
+   モノクロ印刷でも行の段が残るようにする。 */
+.dm-index__group th {
+  background: var(--accent);
+  color: var(--accent-text);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: normal;
+}

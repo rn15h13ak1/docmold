@@ -126,7 +126,7 @@ def convert_text(text: str, config: Config, *,
                 f"（sanitize: strict。素通しにするには sanitize: false）"
             )
 
-    _rewrite_document_links(soup)
+    warnings.extend(_rewrite_document_links(soup))
     _wrap_sections(soup)
     apply_rules(profile.rules, soup, meta)
     warnings.extend(take_warnings(meta))
@@ -224,7 +224,7 @@ def _known_meta_keys(profile: Profile) -> set:
     }
 
 
-def _rewrite_document_links(soup: BeautifulSoup) -> None:
+def _rewrite_document_links(soup: BeautifulSoup) -> List[str]:
     """``[設計書](設計書.md)`` のような文書間リンクを ``.html`` に向け直す。
 
     ディレクトリを一括変換すると入力の階層をそのまま出力に写すため、相対リンクは
@@ -233,7 +233,12 @@ def _rewrite_document_links(soup: BeautifulSoup) -> None:
     外部 URL（``http:`` ``mailto:`` など）とページ内アンカー（``#...``）は触らない。
     リンク先が実際に変換されるかまでは見ない（入力に含まれない .md への参照は
     書き換えても切れたままだが、含まれる場合のほうが圧倒的に多いため）。
+
+    ``[ADR](adr/)`` のようなディレクトリへのリンクは警告する。GitHub 上では
+    ディレクトリを開けるため Markdown としては正しいが、HTML には向け先が無く、
+    変換したときだけ切れる。書き換えようがないので、書き手に気づかせる。
     """
+    warnings: List[str] = []
     for link in soup.find_all("a", href=True):
         href = link["href"].strip()
         if not href or _EXTERNAL_LINK_RE.match(href):
@@ -244,6 +249,28 @@ def _rewrite_document_links(soup: BeautifulSoup) -> None:
         if path.lower().endswith(LINK_EXTS):
             base = path.rsplit(".", 1)[0]
             link["href"] = f"{base}.html{separator}{suffix}"
+        elif _looks_like_directory(path):
+            warnings.append(
+                f"ディレクトリへのリンクは HTML では開けません: {href}"
+                "（リンク先のファイルを指してください）"
+            )
+    return warnings
+
+
+def _looks_like_directory(path: str) -> bool:
+    """リンク先がディレクトリを指していそうなら True。
+
+    ``/`` で終わるもののほか、拡張子を持たない相対パスも対象にする。
+    ``.`` や ``..`` だけの段は、それ自体が向け先ではないので数えない。
+    """
+    if not path or path.startswith("#"):
+        return False
+    if path.endswith("/"):
+        return True
+    last = path.rsplit("/", 1)[-1]
+    if not last or set(last) == {"."}:
+        return False
+    return "." not in last
 
 
 def _split_link(href: str) -> tuple:

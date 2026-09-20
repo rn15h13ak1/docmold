@@ -62,7 +62,11 @@ class _Reporter:
 
 @dataclass
 class _Entry:
-    """索引 HTML の 1 行。"""
+    """索引 HTML の 1 行。
+
+    ``source`` は入力の起点からの相対パス。変換した端末の絶対パスを索引に
+    載せると、配布物やコミットにディレクトリ構成とユーザ名が残るため。
+    """
 
     href: str
     title: str
@@ -169,8 +173,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     entries: List[_Entry] = []
     failed = 0
     try:
-        for source, destination in plan:
-            entry = _convert_one(source, destination, config, args, reporter)
+        for source, destination, source_root in plan:
+            entry = _convert_one(source, destination, source_root, config, args, reporter)
             if entry is None:
                 failed += 1
             else:
@@ -344,16 +348,18 @@ def _reserve_run_dir(base: Path, timestamp: str) -> Path:
 
 def _plan_destinations(sources: List[Tuple[Path, Path]], output_dir: Path,
                        output_file: Optional[Path],
-                       reporter: "_Reporter") -> List[Tuple[Path, Path]]:
-    """``(入力, 出力先)`` の一覧を、出力先が重ならないように決める。
+                       reporter: "_Reporter") -> List[Tuple[Path, Path, Path]]:
+    """``(入力, 出力先, 入力の起点)`` の一覧を、出力先が重ならないように決める。
 
     別々のディレクトリに同名の .md があると出力先がぶつかり、黙って上書きされて
     片方の結果が消える。名前をずらして両方残し、その旨を警告する。
+
+    起点は索引の「ファイル」列を相対パスで出すために持ち回る。
     """
     if output_file is not None:
-        return [(source, output_file) for source, _ in sources]
+        return [(source, output_file, root) for source, root in sources]
 
-    plan: List[Tuple[Path, Path]] = []
+    plan: List[Tuple[Path, Path, Path]] = []
     taken = set()
     for source, root in sources:
         destination = _destination_for(source, root, output_dir)
@@ -365,7 +371,7 @@ def _plan_destinations(sources: List[Tuple[Path, Path]], output_dir: Path,
                 f"（{original.name} は先に変換したファイルが使用）"
             )
         taken.add(destination)
-        plan.append((source, destination))
+        plan.append((source, destination, root))
     return plan
 
 
@@ -399,7 +405,7 @@ def _destination_for(source: Path, root: Path, output_dir: Path) -> Path:
 # 変換
 # =============================================================================
 
-def _convert_one(source: Path, destination: Path, config: Config,
+def _convert_one(source: Path, destination: Path, source_root: Path, config: Config,
                  args: argparse.Namespace, reporter: "_Reporter") -> Optional[_Entry]:
     """1 ファイルを変換して書き出す。失敗したら None。"""
     try:
@@ -427,7 +433,7 @@ def _convert_one(source: Path, destination: Path, config: Config,
         href=_relative_href(destination),
         title=result.title,
         type=result.profile_name,
-        source=str(source),
+        source=_relative_source(source, source_root),
         date=_entry_date(result.meta),
     )
 
@@ -451,6 +457,23 @@ def _relative_href(destination: Path) -> str:
     return destination.name if destination.parent == Path(".") else str(destination)
 
 
+def _relative_source(source: Path, root: Path) -> str:
+    """索引に出す入力パス。入力の起点からの相対で返す。
+
+    絶対パスを渡して変換しても索引は相対で出る。配布物やコミットに、変換した
+    端末のディレクトリ構成とユーザ名を残さないため。起点の外にあるなど相対化
+    できないときは、せめてホームディレクトリを ``~`` に畳んで個人名を隠す。
+    """
+    try:
+        return source.resolve().relative_to(root.resolve()).as_posix()
+    except ValueError:
+        pass
+    try:
+        return ("~" / source.resolve().relative_to(Path.home())).as_posix()
+    except (ValueError, RuntimeError):
+        return source.as_posix()
+
+
 #: 日付らしき並びを取り出す (2026-09-14 / 2026/9/14 / 20260914)。
 _DATE_RE = re.compile(r"(\d{4})\D?(\d{1,2})\D?(\d{1,2})")
 
@@ -465,18 +488,24 @@ def _write_index(index_path: Path, entries: List[_Entry], config: Config,
             href = Path(entry.href).resolve().relative_to(base.resolve()).as_posix()
         except ValueError:
             href = Path(entry.href).as_posix()
+        source = Path(entry.source)
         rows.append({
             "href": href,
             "title": entry.title,
             "type": entry.type,
-            "source": Path(entry.source).as_posix(),
+            "source": source.as_posix(),
+            # 入力のディレクトリごとに索引を区切るため、親と名前を分けて渡す。
+            "group": source.parent.as_posix() if source.parent != Path(".") else "",
+            "name": source.name,
             "date": entry.date,
         })
 
+    ordered = sorted(rows, key=_index_order)
     template = get_environment().get_template(INDEX_FILENAME)
     html = template.render(
         title="docmold 索引",
-        entries=sorted(rows, key=_index_order),
+        entries=ordered,
+        grouped=_index_grouped(ordered),
         generated_at=(
             "" if reproducible
             else datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -496,10 +525,33 @@ def _remove_if_empty(directory: Path) -> None:
         pass
 
 
+def _index_grouped(rows: List[dict]) -> bool:
+    """索引をディレクトリごとに区切るかどうか。
+
+    区切るのは、入力が複数のディレクトリにまたがり、かつどの文書にも日付が
+    無いときだけ。日付を持つ文書セット（議事録や週次報告）では新しい順に
+    並ぶことが索引の値打ちで、ディレクトリで区切るとその順序が崩れるため。
+    """
+    if len({row["group"] for row in rows}) < 2:
+        return False
+    return not any(_date_sort_key(row["date"]) for row in rows)
+
+
 def _index_order(row: dict) -> tuple:
-    """索引の並び順。新しい日付から先に、日付が無いものは最後にまとめる。"""
+    """索引の並び順。新しい日付から先に、日付が無いものは最後にまとめる。
+
+    日付を持たない文書セットは、入力のディレクトリ順 → ファイル名順に並べる。
+    設計書のように日付を書かない文書は、タイトルの辞書順に混ぜてしまうと
+    第1編〜第4編のような構成が索引から読み取れなくなるため。
+
+    日付を持つ文書の並びは変えない。同じ日付の中の順序（種類 → タイトル）も
+    従来のままにし、パスは最後の同点決着にだけ使う。
+    """
     key = _date_sort_key(row["date"])
-    return (0 if key else 1, _reverse(key), row["type"], row["title"])
+    path = (row["group"], row["name"])
+    if key:
+        return (0, _reverse(key), row["type"], row["title"], path)
+    return (1, 0, path, row["type"], row["title"])
 
 
 def _date_sort_key(text: str) -> str:

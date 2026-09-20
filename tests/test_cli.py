@@ -342,6 +342,47 @@ class TestIndex:
         html = (in_tmp / "out" / "index.html").read_text(encoding="utf-8")
         assert "<style>" in html and "http://" not in html
 
+    def test_absolute_input_does_not_leak_the_path(self, in_tmp):
+        """絶対パスで渡しても、索引には入力の起点からの相対パスだけを出す。
+
+        配布物やコミットに、変換した端末のディレクトリ構成とユーザ名が残るため。
+        """
+        write(in_tmp / "docs" / "sub" / "a.md", "# A\n")
+        assert main([str(in_tmp / "docs"), "-o", "out", "--index", "-q"]) == EXIT_OK
+
+        html = (in_tmp / "out" / "index.html").read_text(encoding="utf-8")
+        assert "sub/a.md" in html
+        assert str(in_tmp) not in html
+
+    def test_index_groups_by_input_directory(self, in_tmp):
+        """入力が複数のディレクトリにまたがるときは、ディレクトリごとに区切る。"""
+        write(in_tmp / "docs" / "README.md", "# 入口\n")
+        write(in_tmp / "docs" / "spec" / "a.md", "# A\n")
+        main(["docs", "-o", "out", "--index", "-q"])
+
+        html = (in_tmp / "out" / "index.html").read_text(encoding="utf-8")
+        assert 'colspan="4">spec<' in html
+        # 入口の文書が、構成要素の間に紛れずに先に出ること。
+        assert html.index("入口") < html.index(">A<")
+
+    def test_index_is_flat_within_one_directory(self, in_tmp):
+        """1 つのディレクトリに収まっているなら、区切らず従来どおり並べる。"""
+        write(in_tmp / "docs" / "a.md", "# A\n")
+        write(in_tmp / "docs" / "b.md", "# B\n")
+        main(["docs", "-o", "out", "--index", "-q"])
+        assert 'colspan="4"' not in (in_tmp / "out" / "index.html").read_text(encoding="utf-8")
+
+    def test_dated_documents_keep_the_newest_first(self, in_tmp):
+        """日付を持つ文書の並びは、ディレクトリをまたいでも新しい順のまま。"""
+        write(in_tmp / "docs" / "x" / "old.md",
+              "---\ntype: minutes\ntitle: 古い\n日時: 2026-01-01\n---\n\n## 議題\n")
+        write(in_tmp / "docs" / "y" / "new.md",
+              "---\ntype: minutes\ntitle: 新しい\n日時: 2026-09-01\n---\n\n## 議題\n")
+        main(["docs", "-o", "out", "--index", "-q"])
+
+        html = (in_tmp / "out" / "index.html").read_text(encoding="utf-8")
+        assert html.index("新しい") < html.index("古い")
+
 
 class TestUserConfig:
     def test_cwd_config_is_picked_up(self, in_tmp):
