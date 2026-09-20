@@ -5,6 +5,9 @@
 .dm-body {
   margin: 0;
   padding: 24px 16px 64px;
+  /* 折り返せない URL やパス、長い識別子があると、ページ全体が横へ広がって
+     本文まで読めなくなる。収まらない語だけを折り返す（収まる語は触らない）。 */
+  overflow-wrap: break-word;
   background: var(--surface);
   color: var(--text);
   font-family: var(--font);
@@ -311,7 +314,7 @@ details.dm-callout[open] > .dm-callout__title { margin-bottom: 6px; }
 
 .dm-summary {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
   gap: 12px;
   margin: 0 0 28px;
 }
@@ -331,7 +334,7 @@ details.dm-callout[open] > .dm-callout__title { margin-bottom: 6px; }
 .dm-content--dashboard,
 .dm-content--columns {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr));
   gap: 16px;
   align-items: start;
 }
@@ -365,7 +368,7 @@ details.dm-callout[open] > .dm-callout__title { margin-bottom: 6px; }
 /* 節を横に並べる種類。紙面を広げ、1 列あたりの下限を小さめに取ることで、
    節が 3 つなら 3 列に並ぶようにしている。幅が足りなければ自動で折り返す。 */
 .dm-page--wide { max-width: 1280px; }
-.dm-content--columns { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.dm-content--columns { grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); }
 .dm-content--columns > .dm-section { padding: 4px 14px 12px; }
 .dm-content--columns h3 { font-size: 14px; margin: 18px 0 6px; border: 0; padding: 0; }
 
@@ -408,7 +411,7 @@ details.dm-callout[open] > .dm-callout__title { margin-bottom: 6px; }
 }
 .dm-group__columns {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
   gap: 12px;
   align-items: start;
 }
@@ -612,7 +615,7 @@ details.dm-callout[open] > .dm-callout__title { margin-bottom: 6px; }
 
 .dm-figure-index {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
   gap: 16px;
   margin: 0 0 28px;
   font-size: 13px;
@@ -690,4 +693,28 @@ pre.mermaid svg { max-width: 100%; height: auto; }
   font-family: var(--mono);
   font-size: 12px;
   font-weight: normal;
+}
+
+/* --- 狭い画面 ------------------------------------------------------------ */
+
+/* スマートフォンで開いたときの調整。紙面の余白（左右で 112px）が画面の 3 割を
+   占めてしまうため詰め、表だけは横スクロールに逃がす。表を縦に潰すと桁の
+   対応が読めなくなるので、幅は保ったままスクロールさせる。 */
+@media screen and (max-width: 640px) {
+  .dm-body { padding: 12px 8px 40px; }
+  .dm-page { padding: 18px 14px 24px; }
+  .dm-content h1 { font-size: 19px; }
+  .dm-title { font-size: 21px; }
+
+  .dm-content table, .dm-table {
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  /* 横スクロールする表では、列の下限は狭い画面に合わせて小さくする。 */
+  .dm-content table:not(.dm-meta) th,
+  .dm-content table:not(.dm-meta) td,
+  .dm-table:not(.dm-meta) th,
+  .dm-table:not(.dm-meta) td { min-width: 3.5em; }
 }
