@@ -111,6 +111,15 @@
 .dm-content table:not(.dm-meta) td,
 .dm-table:not(.dm-meta) th,
 .dm-table:not(.dm-meta) td { min-width: 4.5em; }
+/* セルの中は、収まらない語をどこででも折り返させる。識別子やシグネチャ、
+   スラッシュでつないだ並び（read/write/accept/…）は空白も約物も無いため既定では
+   改行できず、列がその長さの幅を要求して表が枠からはみ出す。anywhere は語が
+   収まらないときだけ効き、列の下限（min-width）も一緒に下がる。表の外には
+   効かせない（本文中の語まで不自然な位置で割れるため）。 */
+.dm-content table:not(.dm-meta) th,
+.dm-content table:not(.dm-meta) td,
+.dm-table:not(.dm-meta) th,
+.dm-table:not(.dm-meta) td { overflow-wrap: anywhere; }
 .dm-content th, .dm-content td, .dm-table th, .dm-table td {
   border: 1px solid var(--border);
   padding: 6px 10px;
