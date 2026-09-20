@@ -105,6 +105,21 @@ profiles:
       cover_page: true
       page_break_per_h1: true
 
+  wiki:
+    description: 知識ベースのノート
+    template: article.html
+    theme: corporate
+    # 見出しに「1. 概要」のように章番号を書くノートが多いため、採番しない
+    # （付けると「1.1 1. 概要」と二重になる）。
+    toc:
+      depth: 3
+      numbering: false
+    rules: [callout_blockquote]
+    meta_header: [tags, updated]
+    # 図を CDN から読み込む。1 ファイルずつ開いて読む用途のため、同梱を埋め込むと
+    # 出力全体が数百 MB になる。閉域で配るなら mermaid: true か false に変える。
+    mermaid: cdn
+
   weekly:
     description: 週次報告
     template: dashboard.html

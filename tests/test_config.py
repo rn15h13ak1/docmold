@@ -14,6 +14,12 @@ class TestBundled:
         assert config.profile("minutes").rules
         assert config.profile("incident").theme == "alert"
 
+    def test_wiki_profile(self, config):
+        """知識ベース向けの既定。見出しの採番を切り、コールアウトを有効にする。"""
+        wiki = config.profile("wiki")
+        assert wiki.toc.enabled and not wiki.toc.numbering
+        assert "callout_blockquote" in wiki.rules
+
     def test_type_names_sorted(self, config):
         assert config.type_names == sorted(config.type_names)
 

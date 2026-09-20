@@ -8,6 +8,9 @@
 ## [Unreleased]
 
 ### Added
+- 知識ベース向けの種類 `wiki`。独立したノートの集まりを丸ごと HTML にする用途で、
+  目次の採番を切り（見出しに章番号を書くノートが多いため）、`callout_blockquote` を
+  有効にし、冒頭に `tags` / `updated` のメタ表を出す。図は CDN から読み込む
 - 引用の記法で書くコールアウトのルール（`callout_blockquote`）。`> [!warning] 見出し`
   で始まる引用を枠付きのコールアウトにする。`> [!note]-` は閉じた折りたたみ、
   `> [!note]+` は開いた折りたたみ（`<details>`）になる。GitHub の Alerts や Obsidian と
