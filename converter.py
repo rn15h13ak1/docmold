@@ -131,6 +131,8 @@ def convert_text(text: str, config: Config, *,
     _wrap_sections(soup)
     apply_rules(profile.rules, soup, meta)
     warnings.extend(take_warnings(meta))
+    # 表を包むのはルールの後。ルールは表の親をたどって節を見分けるものがあるため。
+    _wrap_tables(soup)
 
     # 目次はルール適用後の DOM から作るため、画像埋め込みより先に確定させる。
     toc = _build_toc(soup, profile)
@@ -278,6 +280,27 @@ def _known_meta_keys(profile: Profile) -> set:
         *keywords.get("index_date"),
         *keywords.get("severity"),
     }
+
+
+def _wrap_tables(soup: BeautifulSoup) -> None:
+    """表を ``<div class="dm-table-scroll">`` で包む。
+
+    列が多い表や、折り返せない語を含む表は、紙面より広くなることがある。包まずに
+    ``overflow-x`` を表そのものへ与えるには ``display: block`` にするしかなく、それだと
+    表が紙面いっぱいに広がらなくなる（内側の表が内容の幅まで縮む）。包みの方を
+    スクロールさせれば、収まる表は今までどおり紙面いっぱいのまま、はみ出す表だけが
+    横スクロールになる。
+
+    画面が狭いほど効く。スマートフォンの幅では多くの表がスクロールに逃げる。
+    """
+    for table in soup.find_all("table"):
+        parent = table.parent
+        if parent is not None and "dm-table-scroll" in (parent.get("class") or []):
+            continue
+        wrapper = soup.new_tag("div")
+        wrapper["class"] = ["dm-table-scroll"]
+        table.insert_before(wrapper)
+        wrapper.append(table.extract())
 
 
 def _unescape_table_pipes(soup: BeautifulSoup) -> None:

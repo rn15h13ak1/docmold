@@ -114,6 +114,10 @@
 .dm-content table:not(.dm-meta) td,
 .dm-table:not(.dm-meta) th,
 .dm-table:not(.dm-meta) td { min-width: 4.5em; }
+/* 紙面より広い表は、包みの方を横スクロールさせる（表そのものを display: block に
+   すると、収まる表まで紙面いっぱいに広がらなくなる）。 */
+.dm-table-scroll { overflow-x: auto; }
+
 /* セルの中は、収まらない語をどこででも折り返させる。識別子やシグネチャ、
    スラッシュでつないだ並び（read/write/accept/…）は空白も約物も無いため既定では
    改行できず、列がその長さの幅を要求して表が枠からはみ出す。anywhere は語が
@@ -733,13 +737,7 @@ pre.mermaid svg { max-width: 100%; height: auto; }
   .dm-content h1 { font-size: 19px; }
   .dm-title { font-size: 21px; }
 
-  .dm-content table, .dm-table {
-    display: block;
-    width: max-content;
-    max-width: 100%;
-    overflow-x: auto;
-  }
-  /* 横スクロールする表では、列の下限は狭い画面に合わせて小さくする。 */
+  /* 狭い画面では、列の下限も小さくする（横スクロールする表を減らすため）。 */
   .dm-content table:not(.dm-meta) th,
   .dm-content table:not(.dm-meta) td,
   .dm-table:not(.dm-meta) th,
@@ -901,6 +899,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <section class="dm-cover">
   <p class="dm-cover__kind">設計書</p>
   <h1 class="dm-cover__title">サンプルシステム サーバ移行 設計書</h1>
+  <div class="dm-table-scroll">
   <table class="dm-cover__meta">
     <tbody>
       <tr><th scope="row">版数</th><td>1.2</td></tr>
@@ -909,6 +908,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
       <tr><th scope="row">承認者</th><td>山田太郎</td></tr>
     </tbody>
   </table>
+  </div>
 </section>
 
 <div class="dm-page">
@@ -916,6 +916,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
     <h1 class="dm-title">サンプルシステム サーバ移行 設計書</h1>
   </header>
 
+  <div class="dm-table-scroll">
   <table class="dm-meta">
     <tbody>
       <tr><th scope="row">版数</th><td>1.2</td></tr>
@@ -924,6 +925,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
       <tr><th scope="row">承認者</th><td>山田太郎</td></tr>
     </tbody>
   </table>
+  </div>
 
 <nav class="dm-figure-index" aria-label="図表一覧">
   <div class="dm-figure-index__group">
@@ -988,7 +990,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
   M[監視サーバ] -.監視.-&gt; AP1
   M -.監視.-&gt; DB</pre><figcaption class="dm-figure__caption">図 1: 全体構成</figcaption></figure>
 
-<table class="dm-table" id="tbl-1"><caption class="dm-table__caption">表 1: 機器一覧</caption>
+<div class="dm-table-scroll"><table class="dm-table" id="tbl-1"><caption class="dm-table__caption">表 1: 機器一覧</caption>
 <thead>
 <tr>
 <th>機器</th>
@@ -1008,11 +1010,11 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <td>2</td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <h2 id="ネットワーク構成"><span class="dm-heading__number">2.2</span>ネットワーク構成</h2>
 <p>セグメントの分割方針は<a class="dm-xref" href="#tbl-2">表 2</a> のとおり。</p>
 
-<table class="dm-table" id="tbl-2"><caption class="dm-table__caption">表 2: セグメント構成</caption>
+<div class="dm-table-scroll"><table class="dm-table" id="tbl-2"><caption class="dm-table__caption">表 2: セグメント構成</caption>
 <thead>
 <tr>
 <th>セグメント</th>
@@ -1032,7 +1034,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <td>200</td>
 </tr>
 </tbody>
-</table>
+</table></div>
 </section><section class="dm-section dm-section--h1" data-heading-id="移行方式"><h1 id="移行方式"><span class="dm-heading__number">3</span>移行方式</h1>
 <p><a class="dm-xref" href="#tbl-1">表 1</a> の AP サーバから順に切り替える。切替当日の流れを<a class="dm-xref" href="#fig-2">図 2</a> に示す。</p>
 

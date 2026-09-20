@@ -27,6 +27,7 @@
   </header>
 
   {% if meta_header %}
+  <div class="dm-table-scroll">
   <table class="dm-meta">
     <tbody>
       {% for row in meta_header %}
@@ -34,6 +35,7 @@
       {% endfor %}
     </tbody>
   </table>
+  </div>
   {% endif %}
 
   {% block summary %}{% endblock %}

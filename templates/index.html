@@ -17,6 +17,7 @@
     <p class="dm-note">{{ entries | length }} 件{% if generated_at %} / 生成 {{ generated_at }}{% endif %}</p>
   </header>
   <main class="dm-content">
+    <div class="dm-table-scroll">
     <table class="dm-table dm-index">
       <thead>
         <tr><th>タイトル</th><th>種類</th><th>日付</th><th>ファイル</th></tr>
@@ -51,6 +52,7 @@
       </tbody>
       {% endif %}
     </table>
+    </div>
   </main>
   <footer class="dm-footer"><span class="dm-footer__type">docmold index</span></footer>
 </div>

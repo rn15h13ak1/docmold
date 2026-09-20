@@ -8,6 +8,7 @@
   <p class="dm-cover__kind">{{ profile.description or profile.name }}</p>
   <h1 class="dm-cover__title">{{ title }}</h1>
   {% if meta_header %}
+  <div class="dm-table-scroll">
   <table class="dm-cover__meta">
     <tbody>
       {% for row in meta_header %}
@@ -15,6 +16,7 @@
       {% endfor %}
     </tbody>
   </table>
+  </div>
   {% endif %}
 </section>
 {% endif %}

@@ -114,6 +114,10 @@
 .dm-content table:not(.dm-meta) td,
 .dm-table:not(.dm-meta) th,
 .dm-table:not(.dm-meta) td { min-width: 4.5em; }
+/* 紙面より広い表は、包みの方を横スクロールさせる（表そのものを display: block に
+   すると、収まる表まで紙面いっぱいに広がらなくなる）。 */
+.dm-table-scroll { overflow-x: auto; }
+
 /* セルの中は、収まらない語をどこででも折り返させる。識別子やシグネチャ、
    スラッシュでつないだ並び（read/write/accept/…）は空白も約物も無いため既定では
    改行できず、列がその長さの幅を要求して表が枠からはみ出す。anywhere は語が
@@ -733,13 +737,7 @@ pre.mermaid svg { max-width: 100%; height: auto; }
   .dm-content h1 { font-size: 19px; }
   .dm-title { font-size: 21px; }
 
-  .dm-content table, .dm-table {
-    display: block;
-    width: max-content;
-    max-width: 100%;
-    overflow-x: auto;
-  }
-  /* 横スクロールする表では、列の下限は狭い画面に合わせて小さくする。 */
+  /* 狭い画面では、列の下限も小さくする（横スクロールする表を減らすため）。 */
   .dm-content table:not(.dm-meta) th,
   .dm-content table:not(.dm-meta) td,
   .dm-table:not(.dm-meta) th,
@@ -900,6 +898,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
     <h1 class="dm-title">サーバ移行プロジェクト 定例会 議事録</h1>
   </header>
 
+  <div class="dm-table-scroll">
   <table class="dm-meta">
     <tbody>
       <tr><th scope="row">日時</th><td>2026-09-14 10:00-11:00</td></tr>
@@ -908,6 +907,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
       <tr><th scope="row">次回</th><td>2026-09-21 10:00</td></tr>
     </tbody>
   </table>
+  </div>
 
 
   <nav class="dm-toc" aria-label="目次">

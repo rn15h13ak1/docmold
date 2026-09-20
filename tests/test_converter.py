@@ -105,6 +105,26 @@ class TestToc:
         assert "深い見出し" not in toc
 
 
+class TestTableWrapper:
+    """表を包んで、はみ出す表だけを横スクロールさせること。"""
+
+    def test_table_is_wrapped(self, config):
+        html = convert_text("# T\n\n| a | b |\n| --- | --- |\n| 1 | 2 |\n", config).html
+        assert '<div class="dm-table-scroll"><table' in html.replace("\n", "")
+
+    def test_wrapped_once_only(self, config):
+        source = "# T\n\n| a | b |\n| --- | --- |\n| 1 | 2 |\n\n| c | d |\n| --- | --- |\n| 3 | 4 |\n"
+        html = convert_text(source, config).html
+        # 本文の表 2 つ。テンプレート側の表は meta_header が無いので出ない。
+        assert html.count('class="dm-table-scroll"') == html.count("<table")
+
+    def test_table_keeps_its_id_for_links(self, config):
+        """採番した表への相互参照が、包んでも切れないこと。"""
+        source = "---\ntype: spec\n---\n\n# T\n\n| a | b |\n| --- | --- |\n| 1 | 2 |\n"
+        html = convert_text(source, config).html
+        assert 'id="tbl-1"' in html and 'href="#tbl-1"' in html
+
+
 class TestTablePipes:
     r"""表のセルのコードに書いた ``\|`` が、GitHub と同じく ``|`` になること。"""
 

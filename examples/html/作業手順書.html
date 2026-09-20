@@ -114,6 +114,10 @@
 .dm-content table:not(.dm-meta) td,
 .dm-table:not(.dm-meta) th,
 .dm-table:not(.dm-meta) td { min-width: 4.5em; }
+/* 紙面より広い表は、包みの方を横スクロールさせる（表そのものを display: block に
+   すると、収まる表まで紙面いっぱいに広がらなくなる）。 */
+.dm-table-scroll { overflow-x: auto; }
+
 /* セルの中は、収まらない語をどこででも折り返させる。識別子やシグネチャ、
    スラッシュでつないだ並び（read/write/accept/…）は空白も約物も無いため既定では
    改行できず、列がその長さの幅を要求して表が枠からはみ出す。anywhere は語が
@@ -733,13 +737,7 @@ pre.mermaid svg { max-width: 100%; height: auto; }
   .dm-content h1 { font-size: 19px; }
   .dm-title { font-size: 21px; }
 
-  .dm-content table, .dm-table {
-    display: block;
-    width: max-content;
-    max-width: 100%;
-    overflow-x: auto;
-  }
-  /* 横スクロールする表では、列の下限は狭い画面に合わせて小さくする。 */
+  /* 狭い画面では、列の下限も小さくする（横スクロールする表を減らすため）。 */
   .dm-content table:not(.dm-meta) th,
   .dm-content table:not(.dm-meta) td,
   .dm-table:not(.dm-meta) th,
@@ -901,6 +899,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <p class="dm-note dm-note--screen">チェック欄はブラウザ上の作業用です（保存されません）。記録には印刷 / PDF 保存をお使いください。</p>
   </header>
 
+  <div class="dm-table-scroll">
   <table class="dm-meta">
     <tbody>
       <tr><th scope="row">対象システム</th><td>サンプルシステム</td></tr>
@@ -909,6 +908,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
       <tr><th scope="row">所要時間</th><td>4 時間</td></tr>
     </tbody>
   </table>
+  </div>
 
 
   <nav class="dm-toc" aria-label="目次">
@@ -951,7 +951,7 @@ sudo<span class="w"> </span>systemctl<span class="w"> </span>stop<span class="w"
 <div class="codehilite"><div class="dm-code"><button class="dm-code__copy" data-dm-copy="code-3" type="button">コピー</button><pre id="code-3"><span></span><code>sudo<span class="w"> </span>/opt/tools/switch-target.sh<span class="w"> </span>--to<span class="w"> </span>new-cluster
 </code></pre></div></div>
 </section></section><section class="dm-section dm-section--h2" data-heading-id="手順-4-疎通確認"><section class="dm-step" id="step-4"><h2 class="dm-step__title" id="手順-4-疎通確認"><span class="dm-step__number">4</span>手順 4: 疎通確認<label class="dm-step__check"><input class="dm-check" type="checkbox"/><span>完了</span></label></h2>
-<table>
+<div class="dm-table-scroll"><table>
 <thead>
 <tr>
 <th>確認項目</th>
@@ -971,7 +971,7 @@ sudo<span class="w"> </span>systemctl<span class="w"> </span>stop<span class="w"
 <td>未着手</td>
 </tr>
 </tbody>
-</table>
+</table></div>
 </section></section><section class="dm-section dm-section--h2" data-heading-id="切戻し手順"><h2 id="切戻し手順">切戻し手順</h2><div class="dm-callout dm-callout--rollback"><p class="dm-callout__title">切戻し手順</p>
 <p>疎通確認で異常が出た場合は、以下を実施して現行サーバに戻す。</p>
 <div class="codehilite"><div class="dm-code"><button class="dm-code__copy" data-dm-copy="code-4" type="button">コピー</button><pre id="code-4"><span></span><code>sudo<span class="w"> </span>/opt/tools/switch-target.sh<span class="w"> </span>--to<span class="w"> </span>current-cluster
