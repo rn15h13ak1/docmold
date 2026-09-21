@@ -144,6 +144,23 @@ def build(output_dir: Path = OUTPUT_DIR, quiet: bool = False) -> int:
     return changed
 
 
+def absolute_paths(output_dir: Path = OUTPUT_DIR) -> list:
+    """生成物に紛れ込んだ、変換した端末の絶対パスを探す。
+
+    生成物はリポジトリで追跡するため、一度コミットすると Git 履歴から消すのが
+    難しい。ソースと違って人が中身を読まないので、ここで止めないと気づけない。
+
+    探すのはホームディレクトリの綴りだけ。ユーザ名が出るのがいちばん困る形で、
+    それ以外の絶対パス（``/usr/...`` など）は環境の情報を含まない。
+    """
+    home = str(Path.home())
+    found = []
+    for path in sorted(output_dir.glob("*.html")):
+        if home in path.read_text(encoding="utf-8"):
+            found.append(path)
+    return found
+
+
 def _display(path: Path) -> str:
     """ROOT 配下なら相対パスで、外なら絶対パスで表示する。"""
     try:
@@ -159,6 +176,12 @@ def main() -> int:
     args = parser.parse_args()
 
     if args.check:
+        leaked = absolute_paths()
+        if leaked:
+            print("エラー: 生成物に絶対パスが含まれています。", file=sys.stderr)
+            for path in leaked:
+                print(f"  {_display(path)}", file=sys.stderr)
+            return 1
         stale = stale_files()
         if not stale:
             print(f"サンプル HTML は最新です（本文 {len(source_files())} 件 + 索引）")
@@ -170,6 +193,15 @@ def main() -> int:
         return 1
 
     changed = build()
+
+    leaked = absolute_paths()
+    if leaked:
+        print("エラー: 生成物に絶対パスが含まれています。", file=sys.stderr)
+        for path in leaked:
+            print(f"  {_display(path)}", file=sys.stderr)
+        print("  コミットせず、埋め込み方を直してください。", file=sys.stderr)
+        return 1
+
     if changed:
         print(f"{changed} 件を更新しました。差分を確認してコミットしてください。")
     else:

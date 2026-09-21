@@ -105,6 +105,18 @@ class TestBuild:
         build_examples.build(tmp_path, quiet=True)
         assert build_examples.build(tmp_path, quiet=True) == 0
 
+    def test_absolute_path_is_detected(self, tmp_path: Path):
+        """生成物に端末の絶対パスが混ざったら見つける。
+
+        生成物は人が中身を読まないため、検査で止めないと気づけない。
+        """
+        build_examples.build(tmp_path, quiet=True)
+        assert build_examples.absolute_paths(tmp_path) == []
+
+        leaky = tmp_path / "漏洩.html"
+        leaky.write_text(f"<p>{Path.home()}/out</p>", encoding="utf-8")
+        assert build_examples.absolute_paths(tmp_path) == [leaky]
+
     def test_orphan_html_is_removed(self, tmp_path: Path):
         """.md を消したのに残った HTML は削除される。"""
         build_examples.build(tmp_path, quiet=True)
