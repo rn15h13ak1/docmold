@@ -108,3 +108,47 @@ class TestKinds:
         soup = convert(f"<blockquote><p>[!{kind}] 見出し</p></blockquote>")
         box = soup.find(class_="dm-callout")
         assert f"dm-callout--{expected}" in box["class"]
+
+
+class TestEmptyTag:
+    def test_marker_only_paragraph_leaves_no_empty_tag(self):
+        """目印だけの段落は捨てるが、捨てた要素を継ぎ足して空タグを残さない。"""
+        soup = convert("<blockquote><p>[!warning] 題</p>"
+                       "<ul><li>項目1</li><li>項目2</li></ul></blockquote>")
+        box = soup.select_one(".dm-callout")
+        assert [tag.name for tag in box.find_all(recursive=False)] == ["p", "ul"]
+        assert "<></>" not in str(soup)
+
+    def test_list_stays_inside_the_box(self):
+        soup = convert("<blockquote><p>[!note] 題</p><ul><li>項目1</li></ul></blockquote>")
+        assert soup.select_one(".dm-callout li").get_text() == "項目1"
+
+
+class TestInDocument:
+    def test_wiki_output_has_no_empty_tag(self, config):
+        from converter import convert_text
+
+        result = convert_text(
+            "---\ntype: wiki\ntitle: t\n---\n\n## 見出し\n\n"
+            "> [!warning] 題\n>\n> - 項目1\n> - 項目2\n",
+            config,
+        )
+        assert "<></>" not in result.html
+        assert result.html.count('class="dm-callout__title"') == 1
+
+    def test_weekly3_supports_callouts(self, config):
+        from converter import convert_text
+
+        result = convert_text(
+            "---\ntype: weekly3\ntitle: t\n開始日: 2026-03-09\n---\n\n"
+            "## トピックス\n\n### 注意\n\n"
+            "> [!warning] 取りこぼしの可能性\n>\n> - コメント履歴を取得できなかった\n\n"
+            "### 連絡\n\n本文\n\n"
+            "## 前週\n\n### バグ\n\n本文\n\n## 今週\n\n### バグ\n\n本文\n"
+            "\n## 来週\n\n### バグ\n\n本文\n",
+            config,
+        )
+        assert result.warnings == []
+        assert 'class="dm-callout dm-callout--warn"' in result.html
+        # トピックスの枠の中に収まり、枠の数は変わらない。
+        assert result.html.count('class="dm-topic"') == 2

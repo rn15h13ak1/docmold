@@ -77,7 +77,10 @@ def _segments(children: List[Any]) -> List[Tuple[Optional[Tuple[str, str, str]],
         marker = _take_marker(node)
         if marker is not None or not segments:
             segments.append((marker, []))
-        segments[-1][1].append(node)
+        # 目印だけの段落は _take_marker が捨てている。捨てられた要素を控えると、
+        # 後で継ぎ足したときに名前の無いタグ (<></>) として出力に残る。
+        if node.parent is not None:
+            segments[-1][1].append(node)
     return segments
 
 

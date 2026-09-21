@@ -1112,7 +1112,7 @@ YAML は「どんな表現があるか」の一覧として読める状態に保
 | `group_columns` | weekly3 | 見出し 2 の 1 つ目を 1 列、2 つ目以降を列にする。列の中は小見出し 2 段でまとめ直す |
 | `topic_cards` | weekly3 | 1 列にした節を、小見出しごとの枠に分ける（縦に積む） |
 | `topic_index` | weekly3 | 1 列にした節の先頭に、枠への目次を置く |
-| `callout_blockquote` | 共通 | `> [!warning] 見出し` で始まる引用を枠付きのコールアウトに変換 |
+| `callout_blockquote` | wiki / weekly3 | `> [!warning] 見出し` で始まる引用を枠付きのコールアウトに変換 |
 
 ルールは **どの種類からでも使えます**。`rules:` に並べた順に適用されるため、
 `cross_reference` は採番ルール（`figure_caption` / `table_caption`）より後に置いてください。
@@ -1121,7 +1121,7 @@ YAML は「どんな表現があるか」の一覧として読める状態に保
 
 `> [!種別] 見出し` で始まる引用を、枠付きのコールアウトにします。GitHub の Alerts
 （`> [!NOTE]` など）や Obsidian のコールアウトと同じ書き方で、**Markdown のまま読んでも
-意味が通る**ため、既定の種類には入れていませんが `rules:` に足せばどの種類でも使えます。
+意味が通る**ため、どの種類でも `rules:` に足せます。同梱では `wiki` と `weekly3` で有効です。
 
 ```markdown
 > [!warning] よくある誤解
