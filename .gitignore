@@ -17,6 +17,16 @@ venv/
 env/
 ENV/
 
+# 資格情報（どのリポジトリにも要る。追跡してよい理由が無い）
+# .venv/ や config.yaml とは別物。あちらは仮想環境と個人設定を指す。
+.env
+.env.*
+secrets.yaml
+credentials*
+*.pem
+*.key
+*.local.yaml
+
 # Editors / OS
 .DS_Store
 Thumbs.db
