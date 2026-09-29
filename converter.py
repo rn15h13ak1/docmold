@@ -32,6 +32,7 @@ except ImportError as e:  # pragma: no cover
 from assets import embed_images
 from config import DEFAULT_PROFILE, Config, Profile
 from frontmatter import meta_to_text, split_front_matter
+from include import expand as expand_includes
 from mermaid_ext import MermaidExtension
 from renderer import render
 from rules import DERIVED_KEY, apply_rules, keywords, take_warnings
@@ -99,6 +100,14 @@ def convert_text(text: str, config: Config, *,
     meta, body = split_front_matter(text)
     profile, warnings = resolve_profile(config, meta, type_override)
 
+    # 検出語は設定で差し替えられる。取り込みの目印も見るため、ここで有効にする。
+    keywords.use(config.keywords)
+
+    # 取り込みは Markdown のまま差し込む。HTML にした後で継ぐと、採番や列の
+    # 組み替えが文書をまたげない。
+    body, include_warnings = expand_includes(meta, body, source_path)
+    warnings.extend(include_warnings)
+
     extensions = list(profile.markdown_extensions)
     if profile.mermaid.enabled:
         # ```mermaid を codehilite に食われる前に横取りする。
@@ -110,8 +119,6 @@ def convert_text(text: str, config: Config, *,
     )
     html = md.convert(body)
 
-    # 検出語は設定で差し替えられる。ルールを適用する前に有効化する。
-    keywords.use(config.keywords)
     warnings.extend(_check_meta_typos(meta, profile))
 
     soup = BeautifulSoup(html, "html.parser")

@@ -39,6 +39,9 @@ BASE_EXTENSIONS = [
 #: 既定プロファイル名 (front matter に type が無いときに使う)。
 DEFAULT_PROFILE = "default"
 
+#: 取り込み専用の断片。ディレクトリをまとめて変換するとき、単独では変換しない。
+FRAGMENT_PROFILE = "fragment"
+
 #: 本文の生 HTML の扱い。"strict" = 許可リストで絞る / "none" = 素通し。
 SANITIZE_MODES = ("strict", "none")
 

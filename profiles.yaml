@@ -128,6 +128,12 @@ profiles:
     rules: [period_range, list_table, status_badge, progress_bar]
     meta_header: [期間, 報告者, チーム]
 
+  fragment:
+    description: 取り込み用の断片（単独では索引に並べない）
+    template: article.html
+    theme: corporate
+    toc: false
+
   weekly3:
     description: 週次の 3 列（前週・今週・来週）
     template: columns.html

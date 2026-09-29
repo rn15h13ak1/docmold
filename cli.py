@@ -18,9 +18,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional, Sequence, Tuple
 
-from config import ConfigError, Config, load_config
+from config import FRAGMENT_PROFILE, ConfigError, Config, load_config
 from converter import ConversionError, convert_file
-from frontmatter import FrontMatterError, meta_to_text
+from frontmatter import FrontMatterError, meta_to_text, split_front_matter
 from renderer import RenderError, build_css, get_environment
 from rules import RuleError, rule_descriptions
 
@@ -245,6 +245,19 @@ def _list_rules() -> None:
 # 入出力の解決
 # =============================================================================
 
+def _is_fragment(path: Path) -> bool:
+    """取り込み専用の断片か（``type: fragment``）。
+
+    ディレクトリをまとめて変換するときに、断片まで 1 枚の HTML にして索引へ
+    並べないため。名指しで渡された場合は変換する（単独で見て確かめられるように）。
+    """
+    try:
+        meta, _ = split_front_matter(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, FrontMatterError):
+        return False
+    return str(meta.get("type", "")).strip() == FRAGMENT_PROFILE
+
+
 def _collect_sources(inputs: Sequence[str]) -> Tuple[List[Tuple[Path, Path]], List[str]]:
     """入力パスを ``(ファイル, 基準ディレクトリ)`` の一覧に展開する。
 
@@ -261,6 +274,7 @@ def _collect_sources(inputs: Sequence[str]) -> Tuple[List[Tuple[Path, Path]], Li
             found = sorted(
                 child for child in path.rglob("*")
                 if child.is_file() and child.suffix.lower() in MARKDOWN_EXTS
+                and not _is_fragment(child)
             )
             for child in found:
                 key = child.resolve()

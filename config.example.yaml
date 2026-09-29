@@ -85,6 +85,7 @@
 # keywords:
 #   attendee: [出席者, 参加者, 参加メンバー, attendee, participants]
 #   decision: [決定事項, 決定, 合意事項, decision]
+#   include: [取り込み, include]
 #   index_date: [日時, 日付, date, 実施日, 作成日, 発生日時, 期間, 報告日]
 #   period: [期間, 対象期間, period]
 #   period_start: [開始日, 起算日, start, start_date]

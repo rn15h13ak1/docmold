@@ -396,3 +396,27 @@ class TestUserConfig:
         write(in_tmp / "a.md", "# A\n")
         assert main(["a.md", "-c", "bad.yaml"]) == EXIT_CONFIG_ERROR
         assert "設定エラー" in capsys.readouterr().err
+
+
+class TestFragments:
+    """取り込み用の断片は、ディレクトリをまとめて変換するときは外す。"""
+
+    def test_directory_skips_fragments(self, tmp_path, make_md):
+        from cli import _collect_sources
+
+        (tmp_path / "parts").mkdir()
+        (tmp_path / "親.md").write_text("---\ntype: weekly\n---\n\n## x\n\n本文\n",
+                                        encoding="utf-8")
+        (tmp_path / "parts" / "子.md").write_text("---\ntype: fragment\n---\n\n### x\n",
+                                                  encoding="utf-8")
+        sources, _ = _collect_sources([str(tmp_path)])
+        assert [path.name for path, _ in sources] == ["親.md"]
+
+    def test_named_fragment_is_converted(self, tmp_path):
+        from cli import _collect_sources
+
+        child = tmp_path / "子.md"
+        child.write_text("---\ntype: fragment\n---\n\n### x\n", encoding="utf-8")
+        sources, _ = _collect_sources([str(child)])
+        # 名指しなら変換する（単独で見て確かめられるように）。
+        assert [path.name for path, _ in sources] == ["子.md"]
