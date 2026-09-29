@@ -114,6 +114,20 @@
 .dm-content table:not(.dm-meta) td,
 .dm-table:not(.dm-meta) th,
 .dm-table:not(.dm-meta) td { min-width: 4.5em; }
+/* 短い語しか入らない列は、内容なりの幅まで詰める（converter が印を付ける）。
+   表は紙面いっぱいに広げるため、詰めたぶんの余りは残った列――多くは最後の列――に
+   集まる。中身が少ない表がすかすかに間延びするのを防ぐ。
+   最後の列に width: 100% を与える手は採らない。他の列が下限まで潰れるため。
+
+   紙面が最大幅（960px）で開けているときだけ効かせる。窓が狭いと、詰めた列が
+   折り返せないぶん表が広がり、横スクロールが増える（実測で 768px では
+   スクロールする表が 1 → 30、375px では 448 → 933 になった）。余りが無い幅で
+   詰めても得るものが無い。 */
+@media screen and (min-width: 1000px) {
+  .dm-content table:not(.dm-meta) .dm-cell-compact,
+  .dm-table:not(.dm-meta) .dm-cell-compact { white-space: nowrap; width: 1%; }
+}
+
 /* 紙面より広い表は、包みの方を横スクロールさせる（表そのものを display: block に
    すると、収まる表まで紙面いっぱいに広がらなくなる）。 */
 .dm-table-scroll { overflow-x: auto; }
@@ -915,11 +929,11 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <p>3/18 に実施する。当日は問い合わせ窓口を 1 名増やす。</p>
 <h4 id="準備の進み具合">準備の進み具合</h4>
 
-<div class="dm-table-scroll"><table class="dm-table"><thead><tr><th>準備作業</th><th>担当</th><th>進捗</th><th>状態</th><th>残っていること</th></tr></thead><tbody><tr><td>手順の最終確認</td><td>鈴木</td><td><span class="dm-progress" title="80%"><span class="dm-progress__track"><span class="dm-progress__fill" style="width: 80%;"></span></span><span class="dm-progress__label">80%</span></span></td><td><span class="dm-badge dm-badge--warn">進行中</span></td><td><ul>
+<div class="dm-table-scroll"><table class="dm-table"><thead><tr><th class="dm-cell-compact">準備作業</th><th class="dm-cell-compact">担当</th><th class="dm-cell-compact">進捗</th><th class="dm-cell-compact">状態</th><th>残っていること</th></tr></thead><tbody><tr><td class="dm-cell-compact">手順の最終確認</td><td class="dm-cell-compact">鈴木</td><td class="dm-cell-compact"><span class="dm-progress" title="80%"><span class="dm-progress__track"><span class="dm-progress__fill" style="width: 80%;"></span></span><span class="dm-progress__label">80%</span></span></td><td class="dm-cell-compact"><span class="dm-badge dm-badge--warn">進行中</span></td><td><ul>
 <li>切戻しの判断基準をそろえる</li>
 <li>連絡先の一覧を差し替える</li>
 </ul>
-</td></tr><tr><td>連絡体制の確認</td><td>田中</td><td><span class="dm-progress" title="100%"><span class="dm-progress__track"><span class="dm-progress__fill" style="width: 100%;"></span></span><span class="dm-progress__label">100%</span></span></td><td><span class="dm-badge dm-badge--ok">完了</span></td><td>なし</td></tr><tr><td>当日の要員手配</td><td>山田</td><td><span class="dm-progress" title="0%"><span class="dm-progress__track"><span class="dm-progress__fill" style="width: 0%;"></span></span><span class="dm-progress__label">0%</span></span></td><td><span class="dm-badge dm-badge--danger">未着手</span></td><td>3/17 の週次で調整する</td></tr></tbody></table></div>
+</td></tr><tr><td class="dm-cell-compact">連絡体制の確認</td><td class="dm-cell-compact">田中</td><td class="dm-cell-compact"><span class="dm-progress" title="100%"><span class="dm-progress__track"><span class="dm-progress__fill" style="width: 100%;"></span></span><span class="dm-progress__label">100%</span></span></td><td class="dm-cell-compact"><span class="dm-badge dm-badge--ok">完了</span></td><td>なし</td></tr><tr><td class="dm-cell-compact">当日の要員手配</td><td class="dm-cell-compact">山田</td><td class="dm-cell-compact"><span class="dm-progress" title="0%"><span class="dm-progress__track"><span class="dm-progress__fill" style="width: 0%;"></span></span><span class="dm-progress__label">0%</span></span></td><td class="dm-cell-compact"><span class="dm-badge dm-badge--danger">未着手</span></td><td>3/17 の週次で調整する</td></tr></tbody></table></div>
 <h4 id="当日の連絡体制">当日の連絡体制</h4>
 <p>問い合わせ窓口を 1 名増やし、切替の判断は 10:00 の時点で行う。</p>
 </section><section class="dm-topic"><h3 id="文字化けの調査"><span class="dm-topic__number">２．</span>文字化けの調査</h3>
@@ -1010,7 +1024,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </ul>
 </section><section class="dm-column"><p class="dm-column__title">今週（3/9(月)〜3/15(日)）</p>
 
-<div class="dm-table-scroll"><table class="dm-table"><thead><tr><th>区分</th><th>件数</th><th>前週比</th></tr></thead><tbody><tr><td>問い合わせ</td><td>15</td><td>+3</td></tr><tr><td>障害連絡</td><td>2</td><td>-1</td></tr></tbody></table></div>
+<div class="dm-table-scroll"><table class="dm-table"><thead><tr><th class="dm-cell-compact">区分</th><th class="dm-cell-compact">件数</th><th>前週比</th></tr></thead><tbody><tr><td class="dm-cell-compact">問い合わせ</td><td class="dm-cell-compact">15</td><td>+3</td></tr><tr><td class="dm-cell-compact">障害連絡</td><td class="dm-cell-compact">2</td><td>-1</td></tr></tbody></table></div>
 <p>区切りのある項目と普通の項目は混ぜて書けます。</p>
 <ul>
 <li class="dm-entry"><p class="dm-entry__head"><span class="dm-entry__key">WEB-131</span><span class="dm-entry__meta">期限：3/12</span><span class="dm-badge dm-badge--warn">処理中</span></p><p class="dm-entry__body">CSV 出力で日本語が文字化けする</p></li>

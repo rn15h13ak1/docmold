@@ -114,6 +114,20 @@
 .dm-content table:not(.dm-meta) td,
 .dm-table:not(.dm-meta) th,
 .dm-table:not(.dm-meta) td { min-width: 4.5em; }
+/* 短い語しか入らない列は、内容なりの幅まで詰める（converter が印を付ける）。
+   表は紙面いっぱいに広げるため、詰めたぶんの余りは残った列――多くは最後の列――に
+   集まる。中身が少ない表がすかすかに間延びするのを防ぐ。
+   最後の列に width: 100% を与える手は採らない。他の列が下限まで潰れるため。
+
+   紙面が最大幅（960px）で開けているときだけ効かせる。窓が狭いと、詰めた列が
+   折り返せないぶん表が広がり、横スクロールが増える（実測で 768px では
+   スクロールする表が 1 → 30、375px では 448 → 933 になった）。余りが無い幅で
+   詰めても得るものが無い。 */
+@media screen and (min-width: 1000px) {
+  .dm-content table:not(.dm-meta) .dm-cell-compact,
+  .dm-table:not(.dm-meta) .dm-cell-compact { white-space: nowrap; width: 1%; }
+}
+
 /* 紙面より広い表は、包みの方を横スクロールさせる（表そのものを display: block に
    すると、収まる表まで紙面いっぱいに広がらなくなる）。 */
 .dm-table-scroll { overflow-x: auto; }
@@ -954,20 +968,20 @@ sudo<span class="w"> </span>systemctl<span class="w"> </span>stop<span class="w"
 <div class="dm-table-scroll"><table>
 <thead>
 <tr>
-<th>確認項目</th>
-<th>期待値</th>
+<th class="dm-cell-compact">確認項目</th>
+<th class="dm-cell-compact">期待値</th>
 <th>状態</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>ヘルスチェック</td>
-<td>200 OK</td>
+<td class="dm-cell-compact">ヘルスチェック</td>
+<td class="dm-cell-compact">200 OK</td>
 <td>未着手</td>
 </tr>
 <tr>
-<td>バッチ起動</td>
-<td>正常終了</td>
+<td class="dm-cell-compact">バッチ起動</td>
+<td class="dm-cell-compact">正常終了</td>
 <td>未着手</td>
 </tr>
 </tbody>

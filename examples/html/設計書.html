@@ -114,6 +114,20 @@
 .dm-content table:not(.dm-meta) td,
 .dm-table:not(.dm-meta) th,
 .dm-table:not(.dm-meta) td { min-width: 4.5em; }
+/* 短い語しか入らない列は、内容なりの幅まで詰める（converter が印を付ける）。
+   表は紙面いっぱいに広げるため、詰めたぶんの余りは残った列――多くは最後の列――に
+   集まる。中身が少ない表がすかすかに間延びするのを防ぐ。
+   最後の列に width: 100% を与える手は採らない。他の列が下限まで潰れるため。
+
+   紙面が最大幅（960px）で開けているときだけ効かせる。窓が狭いと、詰めた列が
+   折り返せないぶん表が広がり、横スクロールが増える（実測で 768px では
+   スクロールする表が 1 → 30、375px では 448 → 933 になった）。余りが無い幅で
+   詰めても得るものが無い。 */
+@media screen and (min-width: 1000px) {
+  .dm-content table:not(.dm-meta) .dm-cell-compact,
+  .dm-table:not(.dm-meta) .dm-cell-compact { white-space: nowrap; width: 1%; }
+}
+
 /* 紙面より広い表は、包みの方を横スクロールさせる（表そのものを display: block に
    すると、収まる表まで紙面いっぱいに広がらなくなる）。 */
 .dm-table-scroll { overflow-x: auto; }
@@ -993,20 +1007,20 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <div class="dm-table-scroll"><table class="dm-table" id="tbl-1"><caption class="dm-table__caption">表 1: 機器一覧</caption>
 <thead>
 <tr>
-<th>機器</th>
-<th>用途</th>
+<th class="dm-cell-compact">機器</th>
+<th class="dm-cell-compact">用途</th>
 <th>台数</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>AP サーバ</td>
-<td>アプリケーション実行</td>
+<td class="dm-cell-compact">AP サーバ</td>
+<td class="dm-cell-compact">アプリケーション実行</td>
 <td>4</td>
 </tr>
 <tr>
-<td>DB サーバ</td>
-<td>データ永続化</td>
+<td class="dm-cell-compact">DB サーバ</td>
+<td class="dm-cell-compact">データ永続化</td>
 <td>2</td>
 </tr>
 </tbody>
@@ -1017,20 +1031,20 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <div class="dm-table-scroll"><table class="dm-table" id="tbl-2"><caption class="dm-table__caption">表 2: セグメント構成</caption>
 <thead>
 <tr>
-<th>セグメント</th>
-<th>用途</th>
+<th class="dm-cell-compact">セグメント</th>
+<th class="dm-cell-compact">用途</th>
 <th>VLAN</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>業務系</td>
-<td>画面アクセス</td>
+<td class="dm-cell-compact">業務系</td>
+<td class="dm-cell-compact">画面アクセス</td>
 <td>100</td>
 </tr>
 <tr>
-<td>管理系</td>
-<td>監視・保守</td>
+<td class="dm-cell-compact">管理系</td>
+<td class="dm-cell-compact">監視・保守</td>
 <td>200</td>
 </tr>
 </tbody>

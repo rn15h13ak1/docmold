@@ -105,6 +105,45 @@ class TestToc:
         assert "深い見出し" not in toc
 
 
+class TestCompactColumns:
+    """短い語しか入らない列を詰め、余りを残った列に集めること。"""
+
+    def _row(self, html: str) -> list:
+        import re
+        cells = re.search(r"<tbody>.*?<tr>(.*?)</tr>", html, re.S).group(1)
+        return re.findall(r"<td([^>]*)>", cells)
+
+    def test_short_columns_are_marked(self, config):
+        source = "# T\n\n| 区分 | 件数 | 前週比 |\n| --- | --- | --- |\n| 新規 | 3 | +1 |\n"
+        marks = self._row(convert_text(source, config).html)
+        # 最後の列は余りの受け皿なので印を付けない。
+        assert "dm-cell-compact" in marks[0]
+        assert "dm-cell-compact" in marks[1]
+        assert "dm-cell-compact" not in marks[2]
+
+    def test_prose_column_is_left_alone(self, config):
+        """文章の入った列を詰めると、そこが潰れて縦積みになる（2026-09-18 の不具合）。"""
+        source = ("# T\n\n| 機器 | 用途 | 台数 |\n| --- | --- | --- |\n"
+                  "| 業務サーバ | 受付と審査の処理を担う。移行の主対象になる | 3 |\n")
+        marks = self._row(convert_text(source, config).html)
+        assert "dm-cell-compact" in marks[0]
+        assert "dm-cell-compact" not in marks[1]
+
+    def test_column_with_a_list_is_left_alone(self, config):
+        source = ("# T\n\n| 項目 | 内容 |\n| --- | --- |\n"
+                  "| 対象 | <ul><li>a</li><li>b</li></ul> |\n")
+        html = convert_text(source, config).html
+        assert "dm-cell-compact" in self._row(html)[0]
+
+    def test_meta_table_is_untouched(self, config):
+        """メタ表はラベルと値の 2 列で、幅の決め方が別になっている。"""
+        source = "---\ntype: minutes\n日時: 2026-09-29\n---\n\n## 議題\n"
+        html = convert_text(source, config).html
+        start = html.index('<table class="dm-meta">')
+        meta = html[start:html.index("</table>", start)]
+        assert "dm-cell-compact" not in meta
+
+
 class TestTableWrapper:
     """表を包んで、はみ出す表だけを横スクロールさせること。"""
 

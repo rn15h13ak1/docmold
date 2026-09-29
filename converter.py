@@ -132,6 +132,7 @@ def convert_text(text: str, config: Config, *,
     apply_rules(profile.rules, soup, meta)
     warnings.extend(take_warnings(meta))
     # 表を包むのはルールの後。ルールは表の親をたどって節を見分けるものがあるため。
+    _compact_short_columns(soup)
     _wrap_tables(soup)
 
     # 目次はルール適用後の DOM から作るため、画像埋め込みより先に確定させる。
@@ -280,6 +281,65 @@ def _known_meta_keys(profile: Profile) -> set:
         *keywords.get("index_date"),
         *keywords.get("severity"),
     }
+
+
+#: 「短い語が並ぶ列」とみなす文字数の上限。これを超える列は文章とみなす。
+COMPACT_COLUMN_CHARS = 12
+
+
+def _compact_short_columns(soup: BeautifulSoup) -> None:
+    """短い語しか入らない列に印を付け、内容なりの幅まで詰めさせる。
+
+    表は紙面いっぱいに広げるため、中身が少ないと余りが全列へ均等に配られ、
+    どの列もすかすかになる（``区分 | 件数 | 前週比`` が 292px ずつなど）。
+    短い列を内容なりに詰めれば、余りは残った列――多くは最後の列――に集まる。
+
+    **最後の列に ``width: 100%`` を与える手は採らない。** それだと他の列が下限まで
+    潰され、文章の入った列が 1 文字ずつ縦に積まれる（この既定は 2026-09-18 に
+    同じ理由で外している）。詰めるのは短い列だけにして、文章の列には触らない。
+
+    判定は列ごと。見出しを含むどのセルも ``COMPACT_COLUMN_CHARS`` 以下で、箇条書きや
+    段落を抱えていないことを見る。最後の列は余りの受け皿なので対象にしない。
+    """
+    for table in soup.find_all("table"):
+        if "dm-meta" in (table.get("class") or []):
+            continue
+        rows = [row for row in table.find_all("tr") if row.find(["td", "th"])]
+        columns = _table_columns(rows)
+        for index, cells in enumerate(columns[:-1]):
+            if _is_compact_column(cells):
+                for cell in cells:
+                    add_class(cell, "dm-cell-compact")
+
+
+def _table_columns(rows: List[Any]) -> List[List[Any]]:
+    """行の並びを列ごとのセルの並びに組み替える。
+
+    ``colspan`` を持つ行（索引のディレクトリ見出しなど）は桁が合わないため、
+    列として数えない。
+    """
+    columns: List[List[Any]] = []
+    for row in rows:
+        cells = row.find_all(["td", "th"], recursive=False)
+        if any(cell.get("colspan") or cell.get("rowspan") for cell in cells):
+            continue
+        for index, cell in enumerate(cells):
+            while len(columns) <= index:
+                columns.append([])
+            columns[index].append(cell)
+    return columns
+
+
+def _is_compact_column(cells: List[Any]) -> bool:
+    """列のどのセルも短い語だけか。"""
+    if not cells:
+        return False
+    for cell in cells:
+        if cell.find(["ul", "ol", "p", "table", "pre", "br"]):
+            return False
+        if len(cell.get_text(strip=True)) > COMPACT_COLUMN_CHARS:
+            return False
+    return True
 
 
 def _wrap_tables(soup: BeautifulSoup) -> None:
