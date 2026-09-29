@@ -137,3 +137,67 @@ class TestColumnPeriods:
 
         result = convert_text(columns_doc("前週", "今週", "来週", meta="報告者: 鈴木花子"), config)
         assert self.titles_of(result.html)[:3] == ["前週", "今週", "来週"]
+
+
+class TestColumnDates:
+    """取り込み先のファイル名の日付が、その列の週と合っているか。"""
+
+    def convert(self, tmp_path, start: str, names: list, config):
+        from converter import convert_file
+
+        (tmp_path / "parts").mkdir(exist_ok=True)
+        lines = []
+        for heading, name in zip(("前週", "今週", "来週の予定"), names):
+            (tmp_path / "parts" / name).write_text(
+                "---\ntype: fragment\n---\n\n### バグ\n\n- AB-1｜処理中｜x\n",
+                encoding="utf-8")
+            lines.append(f"  {heading}: parts/{name}")
+        parent = tmp_path / "親.md"
+        parent.write_text(
+            f"---\ntype: weekly3\ntitle: t\n開始日: {start}\n取り込み:\n"
+            + "\n".join(lines)
+            + "\n---\n\n## トピックス\n\n### x\n\n本文\n",
+            encoding="utf-8")
+        return convert_file(parent, config)
+
+    NAMES = ["2026-03-09.md", "2026-03-16.md", "2026-03-23.md"]
+
+    def test_matching_dates_are_silent(self, tmp_path, config):
+        result = self.convert(tmp_path, "2026-03-16", self.NAMES, config)
+        assert result.warnings == []
+
+    def test_shifted_start_is_reported(self, tmp_path, config):
+        # 開始日だけ翌週にずらし、取り込み先を直し忘れた場合。
+        result = self.convert(tmp_path, "2026-03-23", self.NAMES, config)
+        assert len(result.warnings) == 3
+        assert "前週" in result.warnings[0]
+        assert "2026-03-16 の週ではありません" in result.warnings[0]
+
+    def test_one_slot_left_behind_is_reported(self, tmp_path, config):
+        names = ["2026-03-09.md", "2026-03-09.md", "2026-03-23.md"]
+        result = self.convert(tmp_path, "2026-03-16", names, config)
+        assert len(result.warnings) == 1
+        assert "今週" in result.warnings[0]
+
+    def test_names_without_a_date_are_not_checked(self, tmp_path, config):
+        result = self.convert(tmp_path, "2026-03-16", ["先週.md", "今回.md", "次回.md"],
+                              config)
+        assert result.warnings == []
+
+    def test_compact_dates_are_read(self, tmp_path, config):
+        names = ["20260309.md", "20260316.md", "20260323.md"]
+        assert self.convert(tmp_path, "2026-03-16", names, config).warnings == []
+        assert self.convert(tmp_path, "2026-03-23", names, config).warnings
+
+    def test_without_a_start_nothing_is_checked(self, tmp_path, config):
+        from converter import convert_file
+
+        (tmp_path / "parts").mkdir()
+        (tmp_path / "parts" / "2026-01-01.md").write_text(
+            "---\ntype: fragment\n---\n\n### バグ\n\n本文\n", encoding="utf-8")
+        parent = tmp_path / "親.md"
+        parent.write_text(
+            "---\ntype: weekly3\ntitle: t\n取り込み:\n  前週: parts/2026-01-01.md\n"
+            "  今週: parts/2026-01-01.md\n  来週: parts/2026-01-01.md\n---\n\n"
+            "## トピックス\n\n### x\n\n本文\n", encoding="utf-8")
+        assert convert_file(parent, config).warnings == []

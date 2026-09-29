@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Tuple
 
 from frontmatter import split_front_matter
-from rules import keywords
+from rules import derived, keywords
 from rules.common import normalize
 
 #: 本文の相対リンク・画像。差し込むときに親から見た位置へ直す。
@@ -69,11 +69,15 @@ def expand(meta: Dict[str, Any], body: str,
 
     source = Path(source_path).resolve()
     parts = [body.rstrip("\n")]
+    # 何をどの見出しに差し込んだかを残す。ルール層が節の並びと突き合わせるため。
+    record: List[Dict[str, str]] = []
     for heading, target in entries.items():
         parts.append("#" * HEADING_LEVEL + f" {heading}".rstrip())
+        record.append({"heading": str(heading), "target": str(target)})
         text = _read(str(target), source, warnings)
         if text:
             parts.append(text)
+    derived(meta)["includes"] = record
     return "\n\n".join(parts) + "\n", warnings
 
 

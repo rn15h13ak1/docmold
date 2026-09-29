@@ -7,9 +7,10 @@ from __future__ import annotations
 
 import re
 from datetime import date, timedelta
+from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
-from rules import keywords, rule, warn
+from rules import derived, keywords, rule, warn
 from rules.common import HEADING_TAGS, normalize
 
 #: 1 期間の日数。開始日を 1 日目と数える（月曜開始なら終了は日曜）。
@@ -23,6 +24,9 @@ WEEKDAYS = "月火水木金土日"
 
 #: 列の見出しに補う期間の区切り (``前週（3/2〜3/8）``)。
 COLUMN_SEPARATOR = "〜"
+
+#: 取り込み先のファイル名から拾う日付（``2026-03-09`` / ``20260309``）。
+_NAME_DATE_RE = re.compile(r"(\d{4})[-_/.]?(\d{2})[-_/.]?(\d{2})")
 
 #: 受け付ける日付の書き方。区切り文字は出力でもそのまま使う。
 _DATE_RE = re.compile(r"(\d{4})([-/.])(\d{1,2})\2(\d{1,2})")
@@ -138,3 +142,38 @@ def _start_date(meta: Dict[str, Any]) -> Optional[date]:
 
 def _month_day(value: date) -> str:
     return f"{value.month}/{value.day}({_weekday(value)})"
+
+
+@rule("column_dates")
+def column_dates(soup: Any, meta: Dict[str, Any]) -> None:
+    """取り込み先のファイル名の日付が、その列の週と合っているか確かめる。
+
+    ``開始日`` と取り込み先は別々に書くため、片方だけずらすと中身と日付が食い違う。
+    ファイル名に日付が無いものは確かめない（名前の付け方は自由なため）。
+    """
+    start = _start_date(meta)
+    includes = derived(meta).get("includes") or []
+    if start is None or not includes:
+        return
+
+    for index, entry in enumerate(includes):
+        found = _name_date(entry.get("target", ""))
+        if found is None:
+            continue
+        expected = start + timedelta(days=(index - 1) * PERIOD_DAYS)
+        if found != expected:
+            warn(meta,
+                 f"取り込み「{entry.get('heading')}」の {entry.get('target')} は"
+                 f" {expected.isoformat()} の週ではありません"
+                 f"（ファイル名の日付: {found.isoformat()}）")
+
+
+def _name_date(target: str) -> Optional[date]:
+    """ファイル名に書かれた日付を返す。無ければ None。"""
+    match = _NAME_DATE_RE.search(Path(target).name)
+    if not match:
+        return None
+    try:
+        return date(int(match.group(1)), int(match.group(2)), int(match.group(3)))
+    except ValueError:
+        return None
