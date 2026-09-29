@@ -286,6 +286,14 @@ def _known_meta_keys(profile: Profile) -> set:
 #: 「短い語が並ぶ列」とみなす文字数の上限。これを超える列は文章とみなす。
 COMPACT_COLUMN_CHARS = 12
 
+#: 列を詰める対象にする列数の上限。これを超える表は詰めない。
+#:
+#: 列が多い表はもともと余りが無く、詰めても得るものが小さい。一方で、詰めた列は
+#: 折り返せないため紙幅を超えやすい。**紙では横スクロールで逃げられず切れる。**
+#: A4（左右 12mm 余白 = 703px）で 3,338 表を実測したところ、切れた 26 表は
+#: すべて 6 列以上だった。5 列までに絞ると 0 件になる。
+COMPACT_MAX_COLUMNS = 5
+
 
 def _compact_short_columns(soup: BeautifulSoup) -> None:
     """短い語しか入らない列に印を付け、内容なりの幅まで詰めさせる。
@@ -306,6 +314,8 @@ def _compact_short_columns(soup: BeautifulSoup) -> None:
             continue
         rows = [row for row in table.find_all("tr") if row.find(["td", "th"])]
         columns = _table_columns(rows)
+        if len(columns) > COMPACT_MAX_COLUMNS:
+            continue
         for index, cells in enumerate(columns[:-1]):
             if _is_compact_column(cells):
                 for cell in cells:
